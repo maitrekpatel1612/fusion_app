@@ -1086,6 +1086,12 @@ class _SidebarState extends State<Sidebar> with TickerProviderStateMixin {
             context,
             MaterialPageRoute(builder: (context) => const UpdateGradesScreen()),
           );
+        } else if (index == 8) {
+          // Navigate to Result screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ResultScreen()),
+          );
         }
         // Notify parent about selection
         if (widget.onItemSelected != null) {

@@ -110,7 +110,7 @@ class _GenerateTranscriptScreenState extends State<GenerateTranscriptScreen> {
           backgroundColor: Colors.white,
           foregroundColor: Colors.black,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.blue),
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
             onPressed: () {
               Navigator.pushReplacement(
                 context,
@@ -122,7 +122,7 @@ class _GenerateTranscriptScreenState extends State<GenerateTranscriptScreen> {
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.menu, color: Colors.blue),
+              icon: const Icon(Icons.menu, color: Colors.black),
               onPressed: () {
                 _scaffoldKey.currentState!.openDrawer();
               },
