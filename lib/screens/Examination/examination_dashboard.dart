@@ -11,7 +11,6 @@ import '../../utils/gesture_sidebar.dart';
 import '../../utils/profile.dart'; // Import the new ProfileScreen
 // Import the new SearchScreen
 import '../../utils/home.dart'; // Import HomeScreen for navigation
-import '../../main.dart'; // Import ExitConfirmationWrapper
 
 class ExaminationDashboard extends StatefulWidget {
   const ExaminationDashboard({super.key});
@@ -113,16 +112,19 @@ class _ExaminationDashboardState extends State<ExaminationDashboard> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      onPopInvoked: (didPop) {
-        if (didPop) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  const ExitConfirmationWrapper(child: HomeScreen()),
-            ),
-            (route) => false,
-          );
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (!didPop) {
+          // Navigate to home screen
+          await Future.delayed(Duration.zero); // Add small delay to prevent navigation conflicts
+          if (context.mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HomeScreen(),
+              ),
+            );
+          }
         }
       },
       child: GestureSidebar(
@@ -150,8 +152,7 @@ class _ExaminationDashboardState extends State<ExaminationDashboard> {
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          const ExitConfirmationWrapper(child: HomeScreen()),
+                      builder: (context) => const HomeScreen(),
                     ),
                     (route) => false,
                   );

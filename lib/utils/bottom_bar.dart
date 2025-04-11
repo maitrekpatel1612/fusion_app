@@ -3,7 +3,6 @@ import 'home.dart';
 import 'profile.dart';
 import 'search_screen.dart';
 import 'modules_screen.dart';
-import '../main.dart';
 
 class BottomBar extends StatefulWidget {
   final int currentIndex;
@@ -296,11 +295,11 @@ class _BottomBarState extends State<BottomBar> with TickerProviderStateMixin {
         // If already at root (no previous routes), don't do anything
         if (Navigator.of(context).canPop() == false) return;
 
-        // Navigate to HomeScreen with ExitConfirmationWrapper
+        // Navigate to HomeScreen directly without ExitConfirmationWrapper
         Navigator.pushAndRemoveUntil(
           context,
           PageRouteBuilder(
-            pageBuilder: (_, __, ___) => const ExitConfirmationWrapper(child: HomeScreen()),
+            pageBuilder: (_, __, ___) => const HomeScreen(),
             transitionDuration: Duration.zero,
           ),
           (route) => false, // Remove all previous routes

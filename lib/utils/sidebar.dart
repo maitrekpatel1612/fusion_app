@@ -1048,39 +1048,6 @@ class _SidebarState extends State<Sidebar> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildNavItem(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required int index,
-    bool showTrailing = true,
-  }) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.blue.shade800),
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.w500),
-      ),
-      trailing: showTrailing ? const Icon(Icons.chevron_right, size: 20) : null,
-      onTap: () {
-        // Close the drawer
-        Navigator.pop(context);
-
-        // Handle navigation based on index
-        if (index == 0) {
-          // Navigate to Home screen
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const HomeScreen(),
-            ),
-          );
-        } else if (widget.onItemSelected != null) {
-          widget.onItemSelected!(index);
-        }
-      },
-    );
-  }
 
   Widget _buildSubNavItem(
     BuildContext context, {

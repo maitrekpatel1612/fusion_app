@@ -12,7 +12,7 @@ class ModulesScreen extends StatefulWidget {
 }
 
 class _ModulesScreenState extends State<ModulesScreen> with TickerProviderStateMixin {
-  final Color primaryBlue = const Color(0xFF1E88E5);
+  final Color primaryBlue = Colors.blue.shade700;
   late AnimationController _animationController;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   
@@ -60,7 +60,7 @@ class _ModulesScreenState extends State<ModulesScreen> with TickerProviderStateM
       appBar: AppBar(
         elevation: 0,
         scrolledUnderElevation: 0,
-        title: Text(
+        title:const Text(
           'Modules',
           style: TextStyle(
             fontWeight: FontWeight.bold,
