@@ -394,17 +394,17 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ),
           Expanded(
-            child: _isSearchBarFocused && _searchController.text.isEmpty
+            child: _searchController.text.isEmpty
                 ? _buildModulesList()
-                : _searchResults.isEmpty && _searchController.text.isEmpty
+                : _searchResults.isEmpty
                     ? const Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.search, size: 80, color: Colors.grey),
+                            Icon(Icons.info_outline, size: 80, color: Colors.grey),
                             SizedBox(height: 16),
                             Text(
-                              'Search for modules or features',
+                              'No results found',
                               style: TextStyle(
                                 fontSize: 18,
                                 color: Colors.grey,
@@ -413,30 +413,13 @@ class _SearchScreenState extends State<SearchScreen> {
                           ],
                         ),
                       )
-                    : _searchResults.isEmpty
-                        ? const Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.info_outline, size: 80, color: Colors.grey),
-                                SizedBox(height: 16),
-                                Text(
-                                  'No results found',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        : ListView.builder(
-                            itemCount: _searchResults.length,
-                            itemBuilder: (context, index) {
-                              final module = _searchResults[index];
-                              return _buildSearchResultItem(context, module);
-                            },
-                          ),
+                    : ListView.builder(
+                        itemCount: _searchResults.length,
+                        itemBuilder: (context, index) {
+                          final module = _searchResults[index];
+                          return _buildSearchResultItem(context, module);
+                        },
+                      ),
           ),
         ],
       ),
@@ -461,6 +444,7 @@ class _SearchScreenState extends State<SearchScreen> {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 2,
+      color: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -482,7 +466,7 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
         ),
         subtitle: Text(
-          "${subModules.length} features available",
+          "${subModules.length} subsections available",
           style: TextStyle(
             fontSize: 12,
             color: Colors.grey.shade600,

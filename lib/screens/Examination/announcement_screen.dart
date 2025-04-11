@@ -44,7 +44,8 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Image selected: ${path.basename(pickedFile.path)}'),
+              content:
+                  Text('Image selected: ${path.basename(pickedFile.path)}'),
               backgroundColor: Colors.green,
               duration: const Duration(seconds: 2),
             ),
@@ -76,7 +77,7 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
       if (result != null) {
         PlatformFile platformFile = result.files.first;
         File file = File(platformFile.path!);
-        
+
         setState(() {
           final uploadFile = UploadFile(
             file: file,
@@ -328,15 +329,18 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _isBrowseMode ? Colors.blue.shade50 : Colors.blue,
-                        foregroundColor: _isBrowseMode ? Colors.blue : Colors.white,
+                        backgroundColor:
+                            _isBrowseMode ? Colors.blue.shade50 : Colors.blue,
+                        foregroundColor:
+                            _isBrowseMode ? Colors.blue : Colors.white,
                         shape: const RoundedRectangleBorder(
                           borderRadius: BorderRadius.only(
                             topLeft: Radius.circular(20),
                             bottomLeft: Radius.circular(20),
                           ),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
                       ),
                       child: Row(
                         children: [
@@ -358,15 +362,18 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                     ElevatedButton(
                       onPressed: _toggleMode,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _isBrowseMode ? Colors.blue : Colors.blue.shade50,
-                        foregroundColor: _isBrowseMode ? Colors.white : Colors.blue,
+                        backgroundColor:
+                            _isBrowseMode ? Colors.blue : Colors.blue.shade50,
+                        foregroundColor:
+                            _isBrowseMode ? Colors.white : Colors.blue,
                         shape: const RoundedRectangleBorder(
                           borderRadius: BorderRadius.only(
                             topRight: Radius.circular(20),
                             bottomRight: Radius.circular(20),
                           ),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
                       ),
                       child: Row(
                         children: [
@@ -393,13 +400,16 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                     label: 'Programme*',
                     child: DropdownButtonFormField<String>(
                       items: const [
-                        DropdownMenuItem(value: 'Programme 1', child: Text('Programme 1')),
-                        DropdownMenuItem(value: 'Programme 2', child: Text('Programme 2')),
+                        DropdownMenuItem(
+                            value: 'Programme 1', child: Text('Programme 1')),
+                        DropdownMenuItem(
+                            value: 'Programme 2', child: Text('Programme 2')),
                       ],
                       onChanged: (value) {},
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                         hintText: 'Select Programme',
                       ),
                     ),
@@ -409,13 +419,16 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                     label: 'Batch*',
                     child: DropdownButtonFormField<String>(
                       items: const [
-                        DropdownMenuItem(value: 'Batch 1', child: Text('Batch 1')),
-                        DropdownMenuItem(value: 'Batch 2', child: Text('Batch 2')),
+                        DropdownMenuItem(
+                            value: 'Batch 1', child: Text('Batch 1')),
+                        DropdownMenuItem(
+                            value: 'Batch 2', child: Text('Batch 2')),
                       ],
                       onChanged: (value) {},
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                         hintText: 'Select Batch',
                       ),
                     ),
@@ -425,13 +438,16 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                     label: 'Department*',
                     child: DropdownButtonFormField<String>(
                       items: const [
-                        DropdownMenuItem(value: 'Department 1', child: Text('Department 1')),
-                        DropdownMenuItem(value: 'Department 2', child: Text('Department 2')),
+                        DropdownMenuItem(
+                            value: 'Department 1', child: Text('Department 1')),
+                        DropdownMenuItem(
+                            value: 'Department 2', child: Text('Department 2')),
                       ],
                       onChanged: (value) {},
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                         hintText: 'Select Department',
                       ),
                     ),
@@ -456,10 +472,12 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                       readOnly: true,
                       decoration: InputDecoration(
                         border: const OutlineInputBorder(),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 16),
                         hintText: 'Upload Files (PDF, JPEG, PNG, JPG)',
                         suffixIcon: IconButton(
-                          icon: const Icon(Icons.upload_file, color: Colors.blue),
+                          icon:
+                              const Icon(Icons.upload_file, color: Colors.blue),
                           onPressed: _showFilePickerOptions,
                         ),
                       ),
@@ -472,7 +490,8 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Selected Files:', style: TextStyle(fontWeight: FontWeight.bold)),
+                          const Text('Selected Files:',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
                           const SizedBox(height: 8),
                           Container(
                             decoration: BoxDecoration(
@@ -481,7 +500,9 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                             ),
                             padding: const EdgeInsets.all(12),
                             child: Column(
-                              children: _selectedFiles.map((file) => _buildFileItem(file)).toList(),
+                              children: _selectedFiles
+                                  .map((file) => _buildFileItem(file))
+                                  .toList(),
                             ),
                           ),
                         ],
@@ -504,7 +525,8 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                               children: [
                                 Expanded(
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 16),
                                     child: Text(
                                       _fileTextController.text.isEmpty
                                           ? 'No file chosen'
@@ -531,11 +553,13 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                                   child: TextButton(
                                     onPressed: _selectFile,
                                     style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16),
                                     ),
                                     child: Text(
                                       'Browse',
-                                      style: TextStyle(color: Colors.blue.shade700),
+                                      style: TextStyle(
+                                          color: Colors.blue.shade700),
                                     ),
                                   ),
                                 ),
@@ -548,7 +572,8 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                           padding: const EdgeInsets.only(left: 8.0),
                           child: Row(
                             children: [
-                              Icon(Icons.info_outline, size: 12, color: Colors.grey.shade600),
+                              Icon(Icons.info_outline,
+                                  size: 12, color: Colors.grey.shade600),
                               const SizedBox(width: 4),
                               Text(
                                 'Accepts .xlsx, .xls or .csv files only',
@@ -568,7 +593,8 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                     Padding(
                       padding: const EdgeInsets.only(top: 12.0),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10, horizontal: 12),
                         decoration: BoxDecoration(
                           color: Colors.grey.shade100,
                           borderRadius: BorderRadius.circular(8),
@@ -587,13 +613,16 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                                 children: [
                                   Text(
                                     _selectedFile!.name,
-                                    style: const TextStyle(fontWeight: FontWeight.w500),
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w500),
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 1,
                                   ),
                                   Text(
                                     '${(_selectedFile!.size / 1024).toStringAsFixed(1)} KB',
-                                    style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+                                    style: TextStyle(
+                                        color: Colors.grey.shade700,
+                                        fontSize: 12),
                                   ),
                                 ],
                               ),
@@ -601,7 +630,8 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                             IconButton(
                               constraints: const BoxConstraints(),
                               padding: EdgeInsets.zero,
-                              icon: const Icon(Icons.close, color: Colors.red, size: 20),
+                              icon: const Icon(Icons.close,
+                                  color: Colors.red, size: 20),
                               onPressed: () {
                                 setState(() {
                                   _isFileSelected = false;
@@ -689,7 +719,8 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                                     const SizedBox(width: 10),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Row(
                                             children: [
@@ -701,7 +732,8 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                                                     fontSize: 15,
                                                   ),
                                                   maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
                                               ),
                                               Text(
@@ -743,7 +775,8 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                                 Padding(
                                   padding: const EdgeInsets.only(top: 4),
                                   child: Text(
-                                    _getTruncatedDescription(announcement.description),
+                                    _getTruncatedDescription(
+                                        announcement.description),
                                     style: TextStyle(
                                       fontSize: 13,
                                       color: Colors.grey.shade800,
@@ -1282,8 +1315,10 @@ class AnnouncementDetailScreen extends StatelessWidget {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue.shade900,
                               foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              textStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                              textStyle: const TextStyle(
+                                  fontWeight: FontWeight.w500, fontSize: 12),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
@@ -1302,7 +1337,7 @@ class AnnouncementDetailScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildHighContrastTag(String text) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -1353,7 +1388,8 @@ final List<AnnouncementItem> _dummyAnnouncements = [
     department: 'CSE',
     date: '22 Jun 2023',
     title: 'Important - Final Examination Schedule',
-    description: 'The final examination for CS301 will be held on July 15, 2023 in Room 204. Please bring your student ID and necessary stationery. No electronic devices allowed except for approved calculators.',
+    description:
+        'The final examination for CS301 will be held on July 15, 2023 in Room 204. Please bring your student ID and necessary stationery. No electronic devices allowed except for approved calculators.',
     hasAttachment: true,
   ),
   AnnouncementItem(
@@ -1361,7 +1397,8 @@ final List<AnnouncementItem> _dummyAnnouncements = [
     department: 'Engineering',
     date: '18 Jun 2023',
     title: 'Workshop on AI and Machine Learning',
-    description: 'We are pleased to announce a workshop on AI and Machine Learning taking place next week. All engineering students are encouraged to attend. This is a great opportunity to enhance your skills in this rapidly growing field.',
+    description:
+        'We are pleased to announce a workshop on AI and Machine Learning taking place next week. All engineering students are encouraged to attend. This is a great opportunity to enhance your skills in this rapidly growing field.',
     hasAttachment: false,
   ),
   AnnouncementItem(
@@ -1369,7 +1406,8 @@ final List<AnnouncementItem> _dummyAnnouncements = [
     department: 'Admin',
     date: '15 Jun 2023',
     title: 'Holiday Notice - University Foundation Day',
-    description: 'This is to inform all students and faculty that the university will remain closed on June 30th to celebrate the University Foundation Day. All classes and administrative work will resume on July 1st.',
+    description:
+        'This is to inform all students and faculty that the university will remain closed on June 30th to celebrate the University Foundation Day. All classes and administrative work will resume on July 1st.',
     hasAttachment: false,
   ),
   AnnouncementItem(
@@ -1377,7 +1415,8 @@ final List<AnnouncementItem> _dummyAnnouncements = [
     department: 'Library',
     date: '10 Jun 2023',
     title: 'Extended Library Hours During Finals Week',
-    description: 'The university library will extend its operating hours from 7 AM to midnight during the finals week (July 10-21). Additional study spaces will be available on the second floor.',
+    description:
+        'The university library will extend its operating hours from 7 AM to midnight during the finals week (July 10-21). Additional study spaces will be available on the second floor.',
     hasAttachment: true,
   ),
   AnnouncementItem(
@@ -1385,7 +1424,8 @@ final List<AnnouncementItem> _dummyAnnouncements = [
     department: 'Mathematics',
     date: '05 Jun 2023',
     title: 'Math Tutoring Sessions Available',
-    description: 'Free math tutoring sessions will be available for all students facing difficulties in Calculus I, II, and Linear Algebra. Sessions will be held every Tuesday and Thursday from 3-5 PM in Room 105.',
+    description:
+        'Free math tutoring sessions will be available for all students facing difficulties in Calculus I, II, and Linear Algebra. Sessions will be held every Tuesday and Thursday from 3-5 PM in Room 105.',
     hasAttachment: false,
   ),
 ];
