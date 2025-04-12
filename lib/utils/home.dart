@@ -520,6 +520,13 @@ class _HomeScreenState extends State<HomeScreen>
       }).toList();
     }
 
+    // Sort by date in descending order
+    filtered.sort((a, b) {
+      final dateA = a['date'] as DateTime;
+      final dateB = b['date'] as DateTime;
+      return dateB.compareTo(dateA);
+    });
+
     return filtered;
   }
 
@@ -599,6 +606,13 @@ class _HomeScreenState extends State<HomeScreen>
         }
       }).toList();
     }
+
+    // Sort by date in descending order
+    filtered.sort((a, b) {
+      final dateA = a['date'] as DateTime;
+      final dateB = b['date'] as DateTime;
+      return dateB.compareTo(dateA);
+    });
 
     return filtered;
   }
@@ -1829,150 +1843,162 @@ class _HomeScreenState extends State<HomeScreen>
       );
     }
 
-    // Replace AnimatedList with a standard ListView.builder for better stability
     return ListView.builder(
       itemCount: filteredNotifications.length,
       padding: const EdgeInsets.all(16.0),
-      physics: const BouncingScrollPhysics(), // Keep elastic scroll physics
+      physics: const BouncingScrollPhysics(),
       itemBuilder: (context, index) {
         final notification = filteredNotifications[index];
         final isUnread = notification['isUnread'] as bool;
         final isSystemNotification = notification['type'] == 'system';
 
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
+        return TweenAnimationBuilder<double>(
+          duration: Duration(milliseconds: 300 + (index * 50)),
+          tween: Tween<double>(begin: 0.0, end: 1.0),
           curve: Curves.easeOut,
-          margin: const EdgeInsets.only(bottom: 16),
-          decoration: BoxDecoration(
-            color: isUnread ? Colors.white : Colors.grey.shade50,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: isUnread 
-                  ? Colors.blue.withOpacity(0.15) // Reduced opacity for subtler shadow
-                  : Colors.grey.shade300.withOpacity(0.3), // Reduced opacity
-                blurRadius: isUnread ? 6 : 4, // Reduced blur radius
-                offset: isUnread ? const Offset(0, 2) : const Offset(0, 1), // Smaller offset
-                spreadRadius: 0, // Removed spread radius for subtler effect
+          builder: (context, value, child) {
+            return Opacity(
+              opacity: value,
+              child: Transform.translate(
+                offset: Offset(0, 50 * (1 - value)),
+                child: child,
               ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
+            );
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: isUnread ? Colors.white : Colors.grey.shade50,
               borderRadius: BorderRadius.circular(20),
-              onTap: () {
-                setState(() {
-                  notification['isUnread'] = false;
-                });
-                // Show notification details in bottom sheet banner
-                _showNotificationDetails(notification);
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header with module tag and time
-                    Row(
-                      children: [
-                        // System or Module tag pill with blue color
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: isUnread ? Colors.blue.shade50 : Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                                color: isUnread ? Colors.blue.shade100 : Colors.grey.shade300,
-                                width: 0.5),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                isSystemNotification
-                                    ? Icons.check_circle_outline
-                                    : _getModuleTypeIcon(
-                                        notification['module']),
-                                size: 12,
-                                color: isUnread ? Colors.blue.shade700 : Colors.grey.shade600,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                isSystemNotification
-                                    ? 'System'
-                                    : notification['module'],
-                                style: TextStyle(
-                                  color: isUnread ? Colors.blue.shade700 : Colors.grey.shade600,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const Spacer(),
-                        // Time indicator with black text when unread
-                        Text(
-                          _formatDate(notification['date']),
-                          style: TextStyle(
-                            color: isUnread ? Colors.grey.shade900 : Colors.grey.shade600, // Changed to darker color for unread
-                            fontSize: 12,
-                          ),
-                        ),
-                        if (isUnread)
-                          AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            margin: const EdgeInsets.only(left: 6),
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade600,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // Title with one line and ellipsis - using hero for animation
-                    Hero(
-                      tag: 'notification_${notification['title']}',
-                      child: Material(
-                        color: Colors.transparent,
-                        child: _highlightSearchText(
-                          notification['title'],
-                          maxLines: 1,
-                          isBold: true,
-                          fontSize: 16,
-                          isRead: !isUnread,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    // Content text
-                    RichText(
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      text: TextSpan(
+              boxShadow: [
+                BoxShadow(
+                  color: isUnread 
+                    ? Colors.blue.withOpacity(0.15) // Reduced opacity for subtler shadow
+                    : Colors.grey.shade300.withOpacity(0.3), // Reduced opacity
+                  blurRadius: isUnread ? 6 : 4, // Reduced blur radius
+                  offset: isUnread ? const Offset(0, 2) : const Offset(0, 1), // Smaller offset
+                  spreadRadius: 0, // Removed spread radius for subtler effect
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: () {
+                  setState(() {
+                    notification['isUnread'] = false;
+                  });
+                  _showNotificationDetails(notification);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header with module tag and time
+                      Row(
                         children: [
-                          TextSpan(
-                            text: notification['content'],
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: isUnread ? Colors.grey.shade900 : Colors.grey.shade700,
-                              height: 1.3,
+                          // System or Module tag pill with blue color
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: isUnread ? Colors.blue.shade50 : Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                  color: isUnread ? Colors.blue.shade100 : Colors.grey.shade300,
+                                  width: 0.5),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  isSystemNotification
+                                      ? Icons.check_circle_outline
+                                      : _getModuleTypeIcon(
+                                          notification['module']),
+                                  size: 12,
+                                  color: isUnread ? Colors.blue.shade700 : Colors.grey.shade600,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  isSystemNotification
+                                      ? 'System'
+                                      : notification['module'],
+                                  style: TextStyle(
+                                    color: isUnread ? Colors.blue.shade700 : Colors.grey.shade600,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
+
+                          const Spacer(),
+                          // Time indicator with black text when unread
+                          Text(
+                            _formatDate(notification['date']),
+                            style: TextStyle(
+                              color: isUnread ? Colors.grey.shade900 : Colors.grey.shade600, // Changed to darker color for unread
+                              fontSize: 12,
+                            ),
+                          ),
+                          if (isUnread)
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              margin: const EdgeInsets.only(left: 6),
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade600,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
                         ],
                       ),
-                    ),
-                  ],
+
+                      const SizedBox(height: 12),
+
+                      // Title with one line and ellipsis - using hero for animation
+                      Hero(
+                        tag: 'notification_${notification['title']}',
+                        child: Material(
+                          color: Colors.transparent,
+                          child: _highlightSearchText(
+                            notification['title'],
+                            maxLines: 1,
+                            isBold: true,
+                            fontSize: 16,
+                            isRead: !isUnread,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      // Content text
+                      RichText(
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: notification['content'],
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: isUnread ? Colors.grey.shade900 : Colors.grey.shade700,
+                                height: 1.3,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -2028,7 +2054,6 @@ class _HomeScreenState extends State<HomeScreen>
       );
     }
 
-    // Replace AnimatedList with a standard ListView.builder here as well
     return ListView.builder(
       itemCount: filteredAnnouncements.length,
       padding: const EdgeInsets.all(16.0),
@@ -2039,157 +2064,171 @@ class _HomeScreenState extends State<HomeScreen>
         final hasAttachment = announcement['hasAttachment'] as bool? ?? false;
         final title = announcement['title'] as String;
 
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
+        return TweenAnimationBuilder<double>(
+          duration: Duration(milliseconds: 300 + (index * 50)),
+          tween: Tween<double>(begin: 0.0, end: 1.0),
           curve: Curves.easeOut,
-          margin: const EdgeInsets.only(bottom: 16),
-          decoration: BoxDecoration(
-            color: isUnread ? Colors.white : Colors.grey.shade50,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: isUnread 
-                  ? Colors.blue.withOpacity(0.15) // Reduced opacity for subtler shadow
-                  : Colors.grey.shade300.withOpacity(0.3), // Reduced opacity
-                blurRadius: isUnread ? 6 : 4, // Reduced blur radius
-                offset: isUnread ? const Offset(0, 2) : const Offset(0, 1), // Smaller offset
-                spreadRadius: 0, // Removed spread radius for subtler effect
+          builder: (context, value, child) {
+            return Opacity(
+              opacity: value,
+              child: Transform.translate(
+                offset: Offset(0, 50 * (1 - value)),
+                child: child,
               ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
+            );
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: isUnread ? Colors.white : Colors.grey.shade50,
               borderRadius: BorderRadius.circular(20),
-              onTap: () {
-                // Mark as read with animation
-                setState(() {
-                  announcement['isUnread'] = false;
-                });
+              boxShadow: [
+                BoxShadow(
+                  color: isUnread 
+                    ? Colors.blue.withOpacity(0.15) // Reduced opacity for subtler shadow
+                    : Colors.grey.shade300.withOpacity(0.3), // Reduced opacity
+                  blurRadius: isUnread ? 6 : 4, // Reduced blur radius
+                  offset: isUnread ? const Offset(0, 2) : const Offset(0, 1), // Smaller offset
+                  spreadRadius: 0, // Removed spread radius for subtler effect
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: () {
+                  // Mark as read with animation
+                  setState(() {
+                    announcement['isUnread'] = false;
+                  });
 
-                // Show announcement details in bottom sheet
-                _showAnnouncementDetails(announcement);
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Module and time row
-                    Row(
-                      children: [
-                        // Module tag pill with blue colors to match notification style
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: isUnread ? Colors.blue.shade50 : Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                                color: isUnread ? Colors.blue.shade100 : Colors.grey.shade300,
-                                width: 0.5),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                _getModuleTypeIcon(announcement['module']),
-                                size: 12,
-                                color: isUnread ? Colors.blue.shade700 : Colors.grey.shade600,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                announcement['module'],
-                                style: TextStyle(
+                  // Show announcement details in bottom sheet
+                  _showAnnouncementDetails(announcement);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Module and time row
+                      Row(
+                        children: [
+                          // Module tag pill with blue colors to match notification style
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: isUnread ? Colors.blue.shade50 : Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                  color: isUnread ? Colors.blue.shade100 : Colors.grey.shade300,
+                                  width: 0.5),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  _getModuleTypeIcon(announcement['module']),
+                                  size: 12,
                                   color: isUnread ? Colors.blue.shade700 : Colors.grey.shade600,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Attachment indicator with subtle animation
-                        if (hasAttachment)
-                          TweenAnimationBuilder<double>(
-                            duration: const Duration(milliseconds: 300),
-                            tween: Tween<double>(begin: 0.0, end: 1.0),
-                            builder: (context, value, child) {
-                              return Padding(
-                                padding: const EdgeInsets.only(left: 8.0),
-                                child: Opacity(
-                                  opacity: value,
-                                  child: Icon(
-                                    Icons.attach_file,
-                                    size: 16,
-                                    color: Colors.grey.shade600,
+                                const SizedBox(width: 4),
+                                Text(
+                                  announcement['module'],
+                                  style: TextStyle(
+                                    color: isUnread ? Colors.blue.shade700 : Colors.grey.shade600,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                              );
-                            },
-                          ),
-
-                        const Spacer(),
-                        // Time indicator with black text when unread
-                        Text(
-                          _formatDate(announcement['date']),
-                          style: TextStyle(
-                            color: isUnread ? Colors.grey.shade900 : Colors.grey.shade600, // Changed to darker color for unread
-                            fontSize: 12,
-                          ),
-                        ),
-                        if (isUnread)
-                          AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            margin: const EdgeInsets.only(left: 6),
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade600,
-                              shape: BoxShape.circle,
+                              ],
                             ),
                           ),
-                      ],
-                    ),
 
-                    const SizedBox(height: 12),
+                          // Attachment indicator with subtle animation
+                          if (hasAttachment)
+                            TweenAnimationBuilder<double>(
+                              duration: const Duration(milliseconds: 300),
+                              tween: Tween<double>(begin: 0.0, end: 1.0),
+                              builder: (context, value, child) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(left: 8.0),
+                                  child: Opacity(
+                                    opacity: value,
+                                    child: Icon(
+                                      Icons.attach_file,
+                                      size: 16,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
 
-                    // Title with one line and ellipsis using hero for animation
-                    Hero(
-                      tag: 'announcement_${announcement['title']}',
-                      child: Material(
-                        color: Colors.transparent,
-                        child: _highlightSearchText(
-                          title,
-                          maxLines: 1,
-                          isBold: true,
-                          fontSize: 15,
-                          isRead: !isUnread,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    // Content text
-                    RichText(
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: announcement['content'],
+                          const Spacer(),
+                          // Time indicator with black text when unread
+                          Text(
+                            _formatDate(announcement['date']),
                             style: TextStyle(
-                              fontSize: 13,
-                              color: isUnread ? Colors.grey.shade900 : Colors.grey.shade700,
-                              height: 1.3,
+                              color: isUnread ? Colors.grey.shade900 : Colors.grey.shade600, // Changed to darker color for unread
+                              fontSize: 12,
                             ),
                           ),
+                          if (isUnread)
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              margin: const EdgeInsets.only(left: 6),
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade600,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
                         ],
                       ),
-                    ),
-                  ],
+
+                      const SizedBox(height: 12),
+
+                      // Title with one line and ellipsis using hero for animation
+                      Hero(
+                        tag: 'announcement_${announcement['title']}',
+                        child: Material(
+                          color: Colors.transparent,
+                          child: _highlightSearchText(
+                            title,
+                            maxLines: 1,
+                            isBold: true,
+                            fontSize: 15,
+                            isRead: !isUnread,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      // Content text
+                      RichText(
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: announcement['content'],
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: isUnread ? Colors.grey.shade900 : Colors.grey.shade700,
+                                height: 1.3,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

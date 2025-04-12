@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import '../services/user_preferences_service.dart';
 import 'bottom_bar.dart'; // Import the bottom bar
 import 'sidebar.dart';
+import 'gesture_sidebar.dart'; // Import the gesture sidebar
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -13,6 +14,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); // Add scaffold key
   // User information (this would typically come from a state management solution or API)
   final Map<String, dynamic> _userData = {
     'name': 'Maitrek Patel',
@@ -366,365 +368,370 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final Color primaryColor =
         _positionColors[_userData['position']] ?? Colors.blue;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Profile',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+    return GestureSidebar(
+      scaffoldKey: _scaffoldKey,
+      edgeWidthFactor: 1.0, // Allow swipe from anywhere on screen
+      child: Scaffold(
+        key: _scaffoldKey, // Use the scaffold key
+        appBar: AppBar(
+          title: const Text(
+            'Profile',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          ),
+          elevation: 0,
+          backgroundColor: primaryColor,
+          iconTheme: const IconThemeData(color: Colors.white), // Set menu icon to white
         ),
-        elevation: 0,
-        backgroundColor: primaryColor,
-        iconTheme: const IconThemeData(color: Colors.white), // Set menu icon to white
-      ),
-      drawer: const Sidebar(), // Add Sidebar as a drawer
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Profile header with gradient
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: primaryColor,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(40),
-                  bottomRight: Radius.circular(40),
+        drawer: const Sidebar(), // Add Sidebar as a drawer
+        body: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Profile header with gradient
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: primaryColor,
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(40),
+                    bottomRight: Radius.circular(40),
+                  ),
                 ),
-              ),
-              child: Column(
-                children: [
-                  const SizedBox(height: 20),
-                  // Profile image
-                  GestureDetector(
-                    onTap: _isEditMode ? _pickImage : null,
-                    child: Stack(
-                      children: [
-                        Container(
-                          width: 120,
-                          height: 120,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 4),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 10,
-                                offset: const Offset(0, 5),
-                              ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(60),
-                            child: _profileImagePath != null
-                                ? Image.file(
-                                    File(_profileImagePath!),
-                                    fit: BoxFit.cover,
-                                  )
-                                : Image.asset(
-                                    'assets/profile.jpg',
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return CircleAvatar(
-                                        backgroundColor: Colors.grey.shade200,
-                                        child: Icon(
-                                          _positionIcons[
-                                                  _userData['position']] ??
-                                              Icons.person,
-                                          size: 60,
-                                          color: primaryColor,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                          ),
-                        ),
-                        if (_isEditMode)
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    blurRadius: 5,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Icon(
-                                Icons.camera_alt,
-                                color: primaryColor,
-                                size: 20,
-                              ),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    // Profile image
+                    GestureDetector(
+                      onTap: _isEditMode ? _pickImage : null,
+                      child: Stack(
+                        children: [
+                          Container(
+                            width: 120,
+                            height: 120,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 4),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 5),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(60),
+                              child: _profileImagePath != null
+                                  ? Image.file(
+                                      File(_profileImagePath!),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Image.asset(
+                                      'assets/profile.jpg',
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return CircleAvatar(
+                                          backgroundColor: Colors.grey.shade200,
+                                          child: Icon(
+                                            _positionIcons[
+                                                    _userData['position']] ??
+                                                Icons.person,
+                                            size: 60,
+                                            color: primaryColor,
+                                          ),
+                                        );
+                                      },
+                                    ),
                             ),
                           ),
-                      ],
+                          if (_isEditMode)
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.2),
+                                      blurRadius: 5,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  Icons.camera_alt,
+                                  color: primaryColor,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  // Name field
-                  _isEditMode
-                      ? Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 30),
-                          child: TextField(
-                            controller: _nameController,
+                    const SizedBox(height: 20),
+                    // Name field
+                    _isEditMode
+                        ? Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 30),
+                            child: TextField(
+                              controller: _nameController,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                              decoration: InputDecoration(
+                                hintText: 'Enter your name',
+                                hintStyle: TextStyle(
+                                    color: Colors.white.withOpacity(0.7)),
+                                border: InputBorder.none,
+                                enabledBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Colors.white.withOpacity(0.5)),
+                                ),
+                                focusedBorder: const UnderlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.white),
+                                ),
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          )
+                        : Text(
+                            _userData['name'],
                             style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
-                            decoration: InputDecoration(
-                              hintText: 'Enter your name',
-                              hintStyle: TextStyle(
-                                  color: Colors.white.withOpacity(0.7)),
-                              border: InputBorder.none,
-                              enabledBorder: UnderlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Colors.white.withOpacity(0.5)),
-                              ),
-                              focusedBorder: const UnderlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white),
-                              ),
-                            ),
-                            textAlign: TextAlign.center,
                           ),
-                        )
-                      : Text(
-                          _userData['name'],
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                    const SizedBox(height: 10),
+                    // Position badge with dropdown option
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _showPositionOptions = !_showPositionOptions;
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                              color: Colors.white.withOpacity(0.5), width: 1),
                         ),
-                  const SizedBox(height: 10),
-                  // Position badge with dropdown option
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _showPositionOptions = !_showPositionOptions;
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                            color: Colors.white.withOpacity(0.5), width: 1),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            _positionIcons[_userData['position']] ??
-                                Icons.person,
-                            color: Colors.white,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            _userData['position'],
-                            style: const TextStyle(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _positionIcons[_userData['position']] ??
+                                  Icons.person,
                               color: Colors.white,
-                              fontWeight: FontWeight.w500,
+                              size: 16,
                             ),
-                          ),
-                          const SizedBox(width: 4),
-                          Icon(
-                            _showPositionOptions
-                                ? Icons.keyboard_arrow_up
-                                : Icons.keyboard_arrow_down,
-                            color: Colors.white,
-                            size: 16,
-                          ),
-                        ],
+                            const SizedBox(width: 8),
+                            Text(
+                              _userData['position'],
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(
+                              _showPositionOptions
+                                  ? Icons.keyboard_arrow_up
+                                  : Icons.keyboard_arrow_down,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 15),
+                    const SizedBox(height: 15),
 
-                  // Position options dropdown
-                  AnimatedCrossFade(
-                    duration: const Duration(milliseconds: 300),
-                    crossFadeState: _showPositionOptions
-                        ? CrossFadeState.showFirst
-                        : CrossFadeState.showSecond,
-                    firstChild: Container(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.swap_horiz,
-                                size: 14,
-                                color: Colors.white,
-                              ),
-                              SizedBox(width: 6),
-                              Text(
-                                'SWITCH POSITION',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 11,
+                    // Position options dropdown
+                    AnimatedCrossFade(
+                      duration: const Duration(milliseconds: 300),
+                      crossFadeState: _showPositionOptions
+                          ? CrossFadeState.showFirst
+                          : CrossFadeState.showSecond,
+                      firstChild: Container(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.swap_horiz,
+                                  size: 14,
                                   color: Colors.white,
-                                  letterSpacing: 1.2,
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          ...List.generate(_positions.length, (index) {
-                            final position = _positions[index];
-                            final isSelected =
-                                position == _userData['position'];
-                            return GestureDetector(
-                              onTap: () {
-                                _changePosition(position);
-                              },
-                              child: Container(
-                                margin: const EdgeInsets.only(bottom: 8),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? Colors.white.withOpacity(0.3)
-                                      : Colors.white.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? Colors.white
-                                        : Colors.white.withOpacity(0.2),
+                                SizedBox(width: 6),
+                                Text(
+                                  'SWITCH POSITION',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
+                                    color: Colors.white,
+                                    letterSpacing: 1.2,
                                   ),
                                 ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: isSelected
-                                            ? Colors.white.withOpacity(0.3)
-                                            : Colors.white.withOpacity(0.1),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Icon(
-                                        _positionIcons[position],
-                                        size: 20,
-                                        color: Colors.white,
-                                      ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            ...List.generate(_positions.length, (index) {
+                              final position = _positions[index];
+                              final isSelected =
+                                  position == _userData['position'];
+                              return GestureDetector(
+                                onTap: () {
+                                  _changePosition(position);
+                                },
+                                child: Container(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? Colors.white.withOpacity(0.3)
+                                        : Colors.white.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Colors.white.withOpacity(0.2),
                                     ),
-                                    const SizedBox(width: 12),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          position,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 14,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        Text(
-                                          _getPositionDescription(position),
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color:
-                                                Colors.white.withOpacity(0.8),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const Spacer(),
-                                    if (isSelected)
+                                  ),
+                                  child: Row(
+                                    children: [
                                       Container(
-                                        padding: const EdgeInsets.all(4),
-                                        decoration: const BoxDecoration(
-                                          color: Colors.white,
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: isSelected
+                                              ? Colors.white.withOpacity(0.3)
+                                              : Colors.white.withOpacity(0.1),
                                           shape: BoxShape.circle,
                                         ),
                                         child: Icon(
-                                          Icons.check,
-                                          size: 12,
-                                          color: primaryColor,
+                                          _positionIcons[position],
+                                          size: 20,
+                                          color: Colors.white,
                                         ),
                                       ),
-                                  ],
+                                      const SizedBox(width: 12),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            position,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 14,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          Text(
+                                            _getPositionDescription(position),
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color:
+                                                  Colors.white.withOpacity(0.8),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const Spacer(),
+                                      if (isSelected)
+                                        Container(
+                                          padding: const EdgeInsets.all(4),
+                                          decoration: const BoxDecoration(
+                                            color: Colors.white,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            Icons.check,
+                                            size: 12,
+                                            color: primaryColor,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            );
-                          }),
-                        ],
+                              );
+                            }),
+                          ],
+                        ),
                       ),
+                      secondChild: const SizedBox(height: 0),
                     ),
-                    secondChild: const SizedBox(height: 0),
-                  ),
 
-                  const SizedBox(height: 15),
-                ],
+                    const SizedBox(height: 15),
+                  ],
+                ),
               ),
-            ),
 
-            // Contact Info Section
-            _buildSectionHeader(
-              primaryColor,
-              'Contact Information',
-              null,
-              null,
-            ),
-            _buildContactInfoCard(primaryColor),
+              // Contact Info Section
+              _buildSectionHeader(
+                primaryColor,
+                'Contact Information',
+                null,
+                null,
+              ),
+              _buildContactInfoCard(primaryColor),
 
-            // Professional Details Section
-            _buildSectionHeader(
-              primaryColor,
-              'Professional Details',
-              null,
-              null,
-            ),
-            _buildProfessionalCard(primaryColor),
+              // Professional Details Section
+              _buildSectionHeader(
+                primaryColor,
+                'Professional Details',
+                null,
+                null,
+              ),
+              _buildProfessionalCard(primaryColor),
 
-            // Education Section
-            _buildSectionHeader(
-              primaryColor,
-              'Education',
-              _isEditMode ? Icons.add : null,
-              _isEditMode ? () => _addEducation() : null,
-            ),
-            ..._buildEducationCards(primaryColor),
+              // Education Section
+              _buildSectionHeader(
+                primaryColor,
+                'Education',
+                _isEditMode ? Icons.add : null,
+                _isEditMode ? () => _addEducation() : null,
+              ),
+              ..._buildEducationCards(primaryColor),
 
-            // Publications Section
-            _buildSectionHeader(
-              primaryColor,
-              'Publications',
-              _isEditMode ? Icons.add : null,
-              _isEditMode ? () => _addPublication() : null,
-            ),
-            ..._buildPublicationCards(primaryColor),
+              // Publications Section
+              _buildSectionHeader(
+                primaryColor,
+                'Publications',
+                _isEditMode ? Icons.add : null,
+                _isEditMode ? () => _addPublication() : null,
+              ),
+              ..._buildPublicationCards(primaryColor),
 
-            // Skills Section
-            _buildSectionHeader(
-              primaryColor,
-              'Skills',
-              null,
-              null,
-            ),
-            _buildSkillsCard(primaryColor),
+              // Skills Section
+              _buildSectionHeader(
+                primaryColor,
+                'Skills',
+                null,
+                null,
+              ),
+              _buildSkillsCard(primaryColor),
 
-            const SizedBox(height: 30),
-          ],
+              const SizedBox(height: 30),
+            ],
+          ),
         ),
+        // Add bottom bar with correct index
+        bottomNavigationBar: const BottomBar(currentIndex: 3),
       ),
-      // Add bottom bar with correct index
-      bottomNavigationBar: const BottomBar(currentIndex: 3),
     );
   }
 

@@ -13,6 +13,7 @@ import 'profile.dart';
 import '../screens/Examination/examination_dashboard.dart';
 import 'bottom_bar.dart'; // Import the bottom bar
 import 'sidebar.dart'; // Import the sidebar
+import 'gesture_sidebar.dart'; // Import the gesture sidebar
 
 class SearchScreen extends StatefulWidget {
   final bool autoFocusSearch;
@@ -29,6 +30,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
   final List<ModuleItem> _allModules = [];
   final List<SubModuleItem> _allSubModules = [];
   final FocusNode _searchFocusNode = FocusNode();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); // Add scaffold key
   
   // Enhanced animation controllers
   late AnimationController _animationController;
@@ -453,68 +455,73 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: const Text(
-          'Search',
-          style: TextStyle(
-            fontWeight: FontWeight.bold, 
-            color: Colors.white,
-            fontSize: 20,
-            letterSpacing: 0.5,
+    return GestureSidebar(
+      scaffoldKey: _scaffoldKey,
+      edgeWidthFactor: 1.0, // Allow swipe from anywhere on screen
+      child: Scaffold(
+        key: _scaffoldKey, // Use the scaffold key
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          title: const Text(
+            'Search',
+            style: TextStyle(
+              fontWeight: FontWeight.bold, 
+              color: Colors.white,
+              fontSize: 20,
+              letterSpacing: 0.5,
+            ),
+          ),
+          backgroundColor: Colors.blue.shade700.withOpacity(0.95),
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.white),
+          centerTitle: false, // Changed from true to false to align title to the left
+          systemOverlayStyle: SystemUiOverlayStyle.light,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(
+              bottom: Radius.circular(20),
+            ),
           ),
         ),
-        backgroundColor: Colors.blue.shade700.withOpacity(0.95),
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        centerTitle: false, // Changed from true to false to align title to the left
-        systemOverlayStyle: SystemUiOverlayStyle.light,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(20),
-          ),
-        ),
-      ),
-      drawer: const Sidebar(), // Add Sidebar as a drawer
-      body: Stack(
-        children: [
-          // Clean white background
-          Container(
-            color: Colors.white,
-          ),
-          Column(
-            children: [
-              _buildSearchHeader(),
-              Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 400),
-                  switchInCurve: Curves.easeOutQuint,
-                  switchOutCurve: Curves.easeInQuint,
-                  transitionBuilder: (Widget child, Animation<double> animation) {
-                    return FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0, 0.05),
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: _searchController.text.isEmpty
-                    ? _buildModulesList()
-                    : _searchResults.isEmpty
-                      ? _buildNoResultsFound()
-                      : _buildSearchResultsList(),
+        drawer: const Sidebar(), // Add Sidebar as a drawer
+        body: Stack(
+          children: [
+            // Clean white background
+            Container(
+              color: Colors.white,
+            ),
+            Column(
+              children: [
+                _buildSearchHeader(),
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 400),
+                    switchInCurve: Curves.easeOutQuint,
+                    switchOutCurve: Curves.easeInQuint,
+                    transitionBuilder: (Widget child, Animation<double> animation) {
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0, 0.05),
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: _searchController.text.isEmpty
+                      ? _buildModulesList()
+                      : _searchResults.isEmpty
+                        ? _buildNoResultsFound()
+                        : _buildSearchResultsList(),
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
+        bottomNavigationBar: const BottomBar(currentIndex: 2),
       ),
-      bottomNavigationBar: const BottomBar(currentIndex: 2),
     );
   }
 

@@ -5,6 +5,8 @@ import '../screens/Examination/submit_grades.dart';
 import '../screens/Examination/update_grades.dart';
 import '../screens/Examination/result.dart';
 import 'home.dart'; // Import home screen
+import 'help.dart'; // Import help screen
+import 'profile.dart'; // Import profile screen
 
 class Sidebar extends StatefulWidget {
   final Function(int)? onItemSelected;
@@ -890,7 +892,7 @@ class _SidebarState extends State<Sidebar> with TickerProviderStateMixin {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  // Home icon
+                  // Home icon - already works properly
                   IconButton(
                     icon: Icon(Icons.home, color: Colors.blue.shade800),
                     tooltip: 'Home',
@@ -904,12 +906,20 @@ class _SidebarState extends State<Sidebar> with TickerProviderStateMixin {
                       );
                     },
                   ),
-                  // Profile icon
+                  // Profile icon - updated to navigate to Profile screen
                   IconButton(
                     icon: Icon(Icons.person, color: Colors.blue.shade800),
                     tooltip: 'Profile',
                     onPressed: () {
                       Navigator.pop(context);
+                      // Navigate to Profile screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ProfileScreen(), // This requires importing the ProfileScreen
+                        ),
+                      );
+                      // Fallback to using onItemSelected if ProfileScreen navigation fails
                       if (widget.onItemSelected != null) {
                         widget.onItemSelected!(6);
                       }
@@ -921,9 +931,12 @@ class _SidebarState extends State<Sidebar> with TickerProviderStateMixin {
                     tooltip: 'Help',
                     onPressed: () {
                       Navigator.pop(context);
-                      if (widget.onItemSelected != null) {
-                        widget.onItemSelected!(8);
-                      }
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HelpScreen(),
+                        ),
+                      );
                     },
                   ),
                   // Settings icon

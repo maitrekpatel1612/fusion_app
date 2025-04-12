@@ -89,6 +89,7 @@ class _ResultScreenState extends State<ResultScreen> {
   Widget build(BuildContext context) {
     return GestureSidebar(
       scaffoldKey: _scaffoldKey,
+      edgeWidthFactor: 1.0, // Allow swipe from anywhere on screen
       child: Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
@@ -225,18 +226,18 @@ class _ResultScreenState extends State<ResultScreen> {
 
 class ResultPreviewScreen extends StatelessWidget {
   final String semester;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); // Add scaffold key
 
-  const ResultPreviewScreen({Key? key, required this.semester})
-      : super(key: key);
+  // Update constructor to include key
+  ResultPreviewScreen({Key? key, required this.semester}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
-
     return GestureSidebar(
-      scaffoldKey: scaffoldKey,
+      scaffoldKey: _scaffoldKey,
+      edgeWidthFactor: 1.0, // Allow swipe from anywhere on screen
       child: Scaffold(
-        key: scaffoldKey,
+        key: _scaffoldKey,
         appBar: AppBar(
           title: Text(
             '$semester Results',

@@ -130,6 +130,7 @@ class _ExaminationDashboardState extends State<ExaminationDashboard> {
       },
       child: GestureSidebar(
         scaffoldKey: _scaffoldKey,
+        edgeWidthFactor: 1.0, // Allow swipe from anywhere on screen
         child: Scaffold(
           key: _scaffoldKey,
           appBar: AppBar(

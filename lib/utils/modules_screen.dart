@@ -4,6 +4,8 @@ import 'sidebar.dart';
 import 'gesture_sidebar.dart';
 import '../screens/Examination/examination_dashboard.dart';
 import 'dart:math' as math;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class ModulesScreen extends StatefulWidget {
   const ModulesScreen({Key? key}) : super(key: key);
@@ -37,7 +39,7 @@ class _ModulesScreenState extends State<ModulesScreen> with TickerProviderStateM
     Module(id: '15', title: 'Research', icon: Icons.science, size: ModuleSize.medium),
   ];
   
-  // Recently used modules - typically this would be dynamic based on user usage
+  // Recently used modules - will be populated from SharedPreferences
   final List<Module> _recentModules = [];
 
   @override
@@ -56,8 +58,61 @@ class _ModulesScreenState extends State<ModulesScreen> with TickerProviderStateM
       _modules[i].size = sizes[i % 3];
     }
     
-    // Initialize recent modules with first 4 modules (normally would be from usage history)
-    _recentModules.addAll(_modules.take(4));
+    // Load recent modules from shared preferences
+    _loadRecentModules();
+  }
+
+  // Load recently used modules from SharedPreferences
+  Future<void> _loadRecentModules() async {
+    final prefs = await SharedPreferences.getInstance();
+    final recentModuleIds = prefs.getStringList('recent_modules') ?? [];
+    
+    // Clear current list
+    _recentModules.clear();
+    
+    // Add modules to recent list based on saved IDs
+    for (String id in recentModuleIds) {
+      final module = _modules.firstWhere(
+        (module) => module.id == id,
+        orElse: () => _modules[0], // Default to first module if not found
+      );
+      _recentModules.add(module);
+    }
+    
+    // If no recent modules, initialize with first 4 modules
+    if (_recentModules.isEmpty) {
+      _recentModules.addAll(_modules.take(4));
+    }
+    
+    // Limit to 4 recent modules
+    if (_recentModules.length > 4) {
+      _recentModules.removeRange(4, _recentModules.length);
+    }
+    
+    // Update UI
+    if (mounted) setState(() {});
+  }
+  
+  // Update recently used modules when a module is accessed
+  Future<void> _updateRecentModules(Module module) async {
+    // Remove the module if it already exists in recent modules
+    _recentModules.removeWhere((m) => m.id == module.id);
+    
+    // Add the module to the start of the list
+    _recentModules.insert(0, module);
+    
+    // Keep only the most recent 4 modules
+    if (_recentModules.length > 4) {
+      _recentModules.removeRange(4, _recentModules.length);
+    }
+    
+    // Save to shared preferences
+    final prefs = await SharedPreferences.getInstance();
+    final recentModuleIds = _recentModules.map((m) => m.id).toList();
+    await prefs.setStringList('recent_modules', recentModuleIds);
+    
+    // Update UI
+    if (mounted) setState(() {});
   }
 
   @override
@@ -249,6 +304,9 @@ class _ModulesScreenState extends State<ModulesScreen> with TickerProviderStateM
     final moduleColor = moduleBlue;
     return InkWell(
       onTap: () {
+        // Update recent modules when tapped
+        _updateRecentModules(module);
+        
         if (module.id == '1') {
           Navigator.push(
             context,
@@ -404,6 +462,12 @@ class StaggeredModuleGrid extends StatelessWidget {
       height: 160, // Increased height from 135 to 160
       child: ModernModuleCard(
         module: module,
+        onModuleTapped: (module) {
+          // Call _updateRecentModules from parent
+          if (context.findAncestorStateOfType<_ModulesScreenState>() != null) {
+            context.findAncestorStateOfType<_ModulesScreenState>()!._updateRecentModules(module);
+          }
+        },
       ),
     );
   }
@@ -412,10 +476,12 @@ class StaggeredModuleGrid extends StatelessWidget {
 // Modern card design that breaks away from squares
 class ModernModuleCard extends StatefulWidget {
   final Module module;
+  final Function(Module)? onModuleTapped;
 
   const ModernModuleCard({
     Key? key,
     required this.module,
+    this.onModuleTapped,
   }) : super(key: key);
 
   @override
@@ -532,6 +598,11 @@ class _ModernModuleCardState extends State<ModernModuleCard> with SingleTickerPr
                       Future.delayed(const Duration(milliseconds: 300), () {
                         // Reset the animation
                         _hoverController.reverse();
+                        
+                        // Update recent modules
+                        if (widget.onModuleTapped != null) {
+                          widget.onModuleTapped!(widget.module);
+                        }
                         
                         // Navigate to appropriate screens based on the module
                         if (widget.module.id == '1') { // Examination module
