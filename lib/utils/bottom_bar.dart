@@ -30,12 +30,12 @@ class _BottomBarState extends State<BottomBar> with TickerProviderStateMixin {
 
     _slideController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 600), // Reverted from 1200ms to original 600ms
     );
 
     _fadeController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 450), // Reverted from 900ms to original 450ms
     );
 
     _fadeController.forward();
@@ -150,6 +150,7 @@ class _BottomBarState extends State<BottomBar> with TickerProviderStateMixin {
             final isEntering = index == widget.currentIndex &&
                 _previousIndex != widget.currentIndex;
 
+            // Smoother opacity transition with curved animation
             double opacity = 1.0;
             if (isLeaving) {
               opacity = 1.0 - (_slideController.value * 0.2);
@@ -157,11 +158,35 @@ class _BottomBarState extends State<BottomBar> with TickerProviderStateMixin {
               opacity = 0.8 + (_slideController.value * 0.2);
             }
 
-            // Color transitions
+            // Color transitions with smoother curve
             final Color iconColor = isSelected
                 ? Color.lerp(
-                    Colors.grey, Colors.blue.shade700, _fadeController.value)!
+                    Colors.grey, 
+                    Colors.blue.shade700, 
+                    Curves.easeInOut.transform(_fadeController.value))!
                 : Colors.grey;
+
+            // Add size animation for icons
+            final double iconSize = isSelected 
+                ? 24 + (4 * Curves.easeInOut.transform(_fadeController.value))
+                : 24;
+                
+            // Calculate scale for the label container - completely shrink to zero and grow to normal
+            // Using Curves.easeInOut for smoother animation and more pronounced effect
+            double labelScale;
+            if (isLeaving) {
+              // Complete shrink when leaving (shrink to zero)
+              labelScale = 1.0 - Curves.easeInOut.transform(_slideController.value);
+            } else if (isEntering) {
+              // Complete grow when entering (from zero to full size)
+              labelScale = Curves.easeOut.transform(_slideController.value);
+            } else if (isSelected) {
+              // Full size when selected
+              labelScale = 1.0;
+            } else {
+              // Slightly smaller size for unselected items
+              labelScale = 0.9;
+            }
 
             return Opacity(
               opacity: opacity,
@@ -174,20 +199,22 @@ class _BottomBarState extends State<BottomBar> with TickerProviderStateMixin {
                   children: [
                     Icon(
                       icon,
-                      size: isSelected
-                          ? 28
-                          : 24, // Slightly reduced to prevent overflow
+                      size: iconSize,
                       color: iconColor,
                     ),
                     SizedBox(height: compact ? 2 : 3), // Increased spacing
-                    ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: maxLabelWidth,
-                        maxHeight: 20, // Added explicit height constraint
+                    Transform.scale(
+                      scale: labelScale,
+                      alignment: Alignment.center,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: maxLabelWidth,
+                          maxHeight: 20, // Added explicit height constraint
+                        ),
+                        child: isSelected
+                            ? _buildSelectedLabel(label, compact)
+                            : _buildUnselectedLabel(label, compact),
                       ),
-                      child: isSelected
-                          ? _buildSelectedLabel(label, compact)
-                          : _buildUnselectedLabel(label, compact),
                     ),
                   ],
                 ),
@@ -240,22 +267,32 @@ class _BottomBarState extends State<BottomBar> with TickerProviderStateMixin {
     String displayText =
         label.length > maxChars ? label.substring(0, maxChars) : label;
 
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: compact ? 4 : 6,
-        vertical: 2,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.blue.shade700,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blue.shade200.withOpacity(0.3),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
+    return AnimatedBuilder(
+      animation: _slideController,
+      builder: (context, child) {
+        // Calculate width for the container animation
+        final double horizontalPadding = 
+            compact ? 4 : 6;
+            
+        return Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: horizontalPadding,
+            vertical: 2,
           ),
-        ],
-      ),
+          decoration: BoxDecoration(
+            color: Colors.blue.shade700,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.shade200.withOpacity(0.3),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: child,
+        );
+      },
       child: Text(
         displayText,
         style: TextStyle(
