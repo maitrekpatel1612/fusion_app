@@ -608,7 +608,7 @@ class _VerifyGradesScreenState extends State<VerifyGradesScreen> {
                   _touchedIndex = -1;
                   return;
                 }
-                _touchedIndex = pieTouchResponse!.touchedSection!.touchedSectionIndex;
+                _touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
               });
             },
           ),

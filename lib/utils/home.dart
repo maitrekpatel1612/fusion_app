@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'dart:async'; // Added import for Timer class
 import 'sidebar.dart';
 import 'gesture_sidebar.dart';
 import 'bottom_bar.dart';
@@ -18,11 +19,22 @@ class _HomeScreenState extends State<HomeScreen>
   late TabController _tabController;
   bool _isSearchVisible = false;
   final TextEditingController _searchController = TextEditingController();
+  Timer? _debounce;
+  final List<String> _searchHistory = []; // Search history list
+  final int _maxSearchHistory = 10; // Changed from 5 to 10 entries
+  bool _isSearchFocused = false;
+  bool _showSearchHistory = false; // Added missing declaration
+  String _searchQuery = ''; // Store the search query for highlighting
+  bool _isSearching = false; // Flag to track active searching state
+  bool _showFilters = false; // Flag to track if filters are shown
+
+  // Focus node for better control over the search field focus
+  final FocusNode _searchFocusNode = FocusNode();
 
   // Filter variables
   String? _selectedModule;
   String? _selectedDateFilter;
-  bool _showFilters = false;
+  String? _selectedReadFilter; // Added read filter state
 
   // Date filter options
   final List<String> _dateFilterOptions = [
@@ -32,6 +44,13 @@ class _HomeScreenState extends State<HomeScreen>
     'This Week',
     'This Month',
     'This Year',
+  ];
+
+  // Read status filter options
+  final List<String> _readFilterOptions = [
+    'All',
+    'Read',
+    'Unread',
   ];
 
   // Example announcement data across various modules
@@ -240,12 +259,16 @@ class _HomeScreenState extends State<HomeScreen>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _selectedDateFilter = 'All'; // Default date filter
+    _selectedReadFilter = 'All'; // Default read filter
+
+    _searchController.addListener(_onSearchChanged);
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     _searchController.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
@@ -254,8 +277,129 @@ class _HomeScreenState extends State<HomeScreen>
       _isSearchVisible = !_isSearchVisible;
       if (!_isSearchVisible) {
         _searchController.clear();
+        _searchFocusNode.unfocus();
+      } else {
+        _searchFocusNode.requestFocus();
+        _searchQuery = '';
       }
     });
+  }
+
+  void _onSearchChanged() {
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      setState(() {
+        _searchQuery = _searchController.text;
+      });
+    });
+  }
+
+  // Add search to history - improved implementation for 5 most recent searches
+  void _addToSearchHistory(String query) {
+    if (query.isEmpty) return;
+
+    setState(() {
+      // Remove the query if it already exists (to move it to the top)
+      _searchHistory.remove(query);
+
+      // Add to the beginning of the list
+      _searchHistory.insert(0, query);
+
+      // Limit history to exactly 5 items
+      if (_searchHistory.length > _maxSearchHistory) {
+        _searchHistory.removeLast();
+      }
+    });
+  }
+
+  // Helper method to highlight search terms in text
+  Widget _highlightSearchText(String text,
+      {int maxLines = 1, bool isBold = false, double fontSize = 14.0, bool isRead = false}) {
+    // Text color is grey if card is read, otherwise dark grey/black
+    final Color textColor = isRead ? Colors.grey.shade600 : Colors.grey.shade900;
+    
+    if (_searchQuery.isEmpty) {
+      return Text(
+        text,
+        maxLines: maxLines,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+          fontSize: fontSize,
+          color: textColor,
+          height: 1.3,
+        ),
+      );
+    }
+
+    // Create regex pattern from search query with case insensitivity
+    final pattern = RegExp(_searchQuery, caseSensitive: false);
+
+    // Find all matches
+    final matches = pattern.allMatches(text);
+
+    if (matches.isEmpty) {
+      return Text(
+        text,
+        maxLines: maxLines,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+          fontSize: fontSize,
+          color: textColor,
+          height: 1.3,
+        ),
+      );
+    }
+
+    // Create TextSpans with highlighted parts
+    final List<TextSpan> children = [];
+    int lastMatchEnd = 0;
+
+    for (final match in matches) {
+      // Add text before match
+      if (match.start > lastMatchEnd) {
+        children.add(TextSpan(
+          text: text.substring(lastMatchEnd, match.start),
+          style: TextStyle(
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            fontSize: fontSize,
+            color: textColor,
+          ),
+        ));
+      }
+
+      // Add highlighted match
+      children.add(TextSpan(
+        text: text.substring(match.start, match.end),
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: fontSize,
+          color: Colors.blue.shade800,
+          backgroundColor: Colors.yellow.shade100,
+        ),
+      ));
+
+      lastMatchEnd = match.end;
+    }
+
+    // Add remaining text after last match
+    if (lastMatchEnd < text.length) {
+      children.add(TextSpan(
+        text: text.substring(lastMatchEnd),
+        style: TextStyle(
+          fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+          fontSize: fontSize,
+          color: textColor,
+        ),
+      ));
+    }
+
+    return RichText(
+      text: TextSpan(children: children),
+      maxLines: maxLines,
+      overflow: TextOverflow.ellipsis,
+    );
   }
 
   // Get all unique modules for filter
@@ -263,11 +407,17 @@ class _HomeScreenState extends State<HomeScreen>
     final Set<String> modules = {};
 
     for (final notification in _notifications) {
-      modules.add(notification['module'] as String);
+      final module = notification['module'] as String?;
+      if (module != null) {
+        modules.add(module);
+      }
     }
 
     for (final announcement in _announcements) {
-      modules.add(announcement['module'] as String);
+      final module = announcement['module'] as String?;
+      if (module != null) {
+        modules.add(module);
+      }
     }
 
     final List<String> modulesList = modules.toList();
@@ -282,15 +432,18 @@ class _HomeScreenState extends State<HomeScreen>
     if (_searchController.text.isNotEmpty) {
       filtered = filtered
           .where((announcement) =>
-              announcement['title']
-                  .toLowerCase()
-                  .contains(_searchController.text.toLowerCase()) ||
-              announcement['content']
-                  .toLowerCase()
-                  .contains(_searchController.text.toLowerCase()) ||
-              announcement['module']
-                  .toLowerCase()
-                  .contains(_searchController.text.toLowerCase()))
+              (announcement['title'] != null &&
+                  (announcement['title'] as String)
+                      .toLowerCase()
+                      .contains(_searchController.text.toLowerCase())) ||
+              (announcement['content'] != null &&
+                  (announcement['content'] as String)
+                      .toLowerCase()
+                      .contains(_searchController.text.toLowerCase())) ||
+              (announcement['module'] != null &&
+                  (announcement['module'] as String)
+                      .toLowerCase()
+                      .contains(_searchController.text.toLowerCase())))
           .toList();
     }
 
@@ -307,7 +460,9 @@ class _HomeScreenState extends State<HomeScreen>
       final today = DateTime(now.year, now.month, now.day);
 
       filtered = filtered.where((announcement) {
-        final date = announcement['date'] as DateTime;
+        final date = announcement['date'] as DateTime?;
+
+        if (date == null) return false;
 
         switch (_selectedDateFilter) {
           case 'Today':
@@ -331,6 +486,22 @@ class _HomeScreenState extends State<HomeScreen>
       }).toList();
     }
 
+    // Apply read/unread filter
+    if (_selectedReadFilter != null && _selectedReadFilter != 'All') {
+      filtered = filtered.where((announcement) {
+        final isUnread = announcement['isUnread'] as bool? ?? false;
+
+        switch (_selectedReadFilter) {
+          case 'Read':
+            return !isUnread;
+          case 'Unread':
+            return isUnread;
+          default:
+            return true;
+        }
+      }).toList();
+    }
+
     return filtered;
   }
 
@@ -341,15 +512,18 @@ class _HomeScreenState extends State<HomeScreen>
     if (_searchController.text.isNotEmpty) {
       filtered = filtered
           .where((notification) =>
-              notification['title']
-                  .toLowerCase()
-                  .contains(_searchController.text.toLowerCase()) ||
-              notification['content']
-                  .toLowerCase()
-                  .contains(_searchController.text.toLowerCase()) ||
-              notification['module']
-                  .toLowerCase()
-                  .contains(_searchController.text.toLowerCase()))
+              (notification['title'] != null &&
+                  (notification['title'] as String)
+                      .toLowerCase()
+                      .contains(_searchController.text.toLowerCase())) ||
+              (notification['content'] != null &&
+                  (notification['content'] as String)
+                      .toLowerCase()
+                      .contains(_searchController.text.toLowerCase())) ||
+              (notification['module'] != null &&
+                  (notification['module'] as String)
+                      .toLowerCase()
+                      .contains(_searchController.text.toLowerCase())))
           .toList();
     }
 
@@ -366,7 +540,9 @@ class _HomeScreenState extends State<HomeScreen>
       final today = DateTime(now.year, now.month, now.day);
 
       filtered = filtered.where((notification) {
-        final date = notification['date'] as DateTime;
+        final date = notification['date'] as DateTime?;
+
+        if (date == null) return false;
 
         switch (_selectedDateFilter) {
           case 'Today':
@@ -384,6 +560,22 @@ class _HomeScreenState extends State<HomeScreen>
             return date.month == today.month && date.year == today.year;
           case 'This Year':
             return date.year == today.year;
+          default:
+            return true;
+        }
+      }).toList();
+    }
+
+    // Apply read/unread filter
+    if (_selectedReadFilter != null && _selectedReadFilter != 'All') {
+      filtered = filtered.where((notification) {
+        final isUnread = notification['isUnread'] as bool? ?? false;
+
+        switch (_selectedReadFilter) {
+          case 'Read':
+            return !isUnread;
+          case 'Unread':
+            return isUnread;
           default:
             return true;
         }
@@ -411,6 +603,174 @@ class _HomeScreenState extends State<HomeScreen>
   // Show notification details in a bottom sheet
   void _showNotificationDetails(Map<String, dynamic> notification) {
     final isSystemNotification = notification['type'] == 'system';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      isDismissible: true, // Allow dismissing by tapping outside
+      enableDrag: true, // Allow dragging to dismiss
+      builder: (context) {
+        return Stack(
+          children: [
+            // Transparent overlay for detecting taps outside
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => Navigator.of(context).pop(),
+              child: Container(
+                color: Colors.transparent,
+                height: double.infinity,
+                width: double.infinity,
+              ),
+            ),
+            // The actual bottom sheet content
+            DraggableScrollableSheet(
+              initialChildSize: 0.6,
+              minChildSize: 0.3,
+              maxChildSize: 0.9,
+              builder: (context, scrollController) {
+                return Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(24),
+                      topRight: Radius.circular(24),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, -5),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Handle bar
+                      Center(
+                        child: Container(
+                          margin: const EdgeInsets.only(top: 12),
+                          width: 40,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        ),
+                      ),
+
+                      // Header with module/system badge
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: isSystemNotification
+                                    ? Colors.blue.shade50
+                                    : Colors.indigo.shade50,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: isSystemNotification
+                                      ? Colors.blue.shade200
+                                      : Colors.indigo.shade200,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    isSystemNotification
+                                        ? Icons.system_update
+                                        : _getModuleTypeIcon(
+                                            notification['module'] ?? ''),
+                                    size: 16,
+                                    color: isSystemNotification
+                                        ? Colors.blue.shade700
+                                        : Colors.indigo.shade700,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    isSystemNotification
+                                        ? 'System'
+                                        : notification['module'] ?? '',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: isSystemNotification
+                                          ? Colors.blue.shade700
+                                          : Colors.indigo.shade700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              _formatDate(notification['date']),
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Title
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                        child: Text(
+                          notification['title'],
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            height: 1.3,
+                          ),
+                        ),
+                      ),
+
+                      const Divider(),
+
+                      // Content - scrollable
+                      Expanded(
+                        child: SingleChildScrollView(
+                          controller: scrollController,
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                notification['content'],
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey.shade800,
+                                  height: 1.5,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                            ],
+                          ),
+                        ),
+                      ),
+                      // Removed action buttons container with Close button
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Show announcement details in a bottom sheet
+  void _showAnnouncementDetails(Map<String, dynamic> announcement) {
+    final hasAttachment = announcement['hasAttachment'] as bool? ?? false;
+    final attachmentName = announcement['attachmentName'] as String? ?? '';
     
     showModalBottomSheet(
       context: context,
@@ -467,174 +827,20 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                         ),
                       ),
-                      
-                      // Header with module/system badge
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: isSystemNotification ? Colors.green.shade50 : Colors.indigo.shade50,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: isSystemNotification ? Colors.green.shade200 : Colors.indigo.shade200,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    isSystemNotification
-                                        ? Icons.system_update
-                                        : _getModuleTypeIcon(notification['module'] ?? ''),
-                                    size: 16,
-                                    color: isSystemNotification ? Colors.green.shade700 : Colors.indigo.shade700,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    isSystemNotification ? 'System' : notification['module'] ?? '',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      color: isSystemNotification ? Colors.green.shade700 : Colors.indigo.shade700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const Spacer(),
-                            Text(
-                              _formatDate(notification['date']),
-                              style: TextStyle(
-                                color: Colors.grey.shade600,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      
-                      // Title
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-                        child: Text(
-                          notification['title'],
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            height: 1.3,
-                          ),
-                        ),
-                      ),
-                      
-                      const Divider(),
-                      
-                      // Content - scrollable
-                      Expanded(
-                        child: SingleChildScrollView(
-                          controller: scrollController,
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                notification['content'],
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey.shade800,
-                                  height: 1.5,
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-                            ],
-                          ),
-                        ),
-                      ),
-                      // Removed action buttons container with Close button
-                    ],
-                  ),
-                );
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
 
-  // Show announcement details in a bottom sheet
-  void _showAnnouncementDetails(Map<String, dynamic> announcement) {
-    final hasAttachment = announcement['hasAttachment'] as bool? ?? false;
-    final attachmentName = announcement['attachmentName'] as String? ?? '';
-    
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      isDismissible: true, // Allow dismissing by tapping outside
-      enableDrag: true,   // Allow dragging to dismiss
-      builder: (context) {
-        return Stack(
-          children: [
-            // Transparent overlay for detecting taps outside
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => Navigator.of(context).pop(),
-              child: Container(
-                color: Colors.transparent,
-                height: double.infinity,
-                width: double.infinity,
-              ),
-            ),
-            // The actual bottom sheet content
-            DraggableScrollableSheet(
-              initialChildSize: 0.6,
-              minChildSize: 0.3,
-              maxChildSize: 0.9,
-              builder: (context, scrollController) {
-                return Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(24),
-                      topRight: Radius.circular(24),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, -5),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Handle bar
-                      Center(
-                        child: Container(
-                          margin: const EdgeInsets.only(top: 12),
-                          width: 40,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade300,
-                            borderRadius: BorderRadius.circular(3),
-                          ),
-                        ),
-                      ),
-                      
                       // Header with module badge
                       Padding(
                         padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
                         child: Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
                                 color: Colors.indigo.shade50,
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: Colors.indigo.shade200),
+                                border:
+                                    Border.all(color: Colors.indigo.shade200),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -666,7 +872,7 @@ class _HomeScreenState extends State<HomeScreen>
                           ],
                         ),
                       ),
-                      
+
                       // Title
                       Padding(
                         padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
@@ -679,9 +885,9 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                         ),
                       ),
-                      
+
                       const Divider(),
-                      
+
                       // Content - scrollable
                       Expanded(
                         child: SingleChildScrollView(
@@ -698,7 +904,7 @@ class _HomeScreenState extends State<HomeScreen>
                                   height: 1.5,
                                 ),
                               ),
-                              
+
                               // Attachment section
                               if (hasAttachment) ...[
                                 const SizedBox(height: 24),
@@ -707,7 +913,8 @@ class _HomeScreenState extends State<HomeScreen>
                                   decoration: BoxDecoration(
                                     color: Colors.blue.shade50,
                                     borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.blue.shade100),
+                                    border:
+                                        Border.all(color: Colors.blue.shade100),
                                   ),
                                   child: Row(
                                     children: [
@@ -719,7 +926,8 @@ class _HomeScreenState extends State<HomeScreen>
                                       const SizedBox(width: 16),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               attachmentName,
@@ -746,10 +954,13 @@ class _HomeScreenState extends State<HomeScreen>
                                         ),
                                         onPressed: () {
                                           // Download logic
-                                          ScaffoldMessenger.of(context).showSnackBar(
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
                                             SnackBar(
-                                              content: Text('Downloading ${attachmentName}...'),
-                                              duration: const Duration(seconds: 2),
+                                              content: Text(
+                                                  'Downloading $attachmentName...'),
+                                              duration:
+                                                  const Duration(seconds: 2),
                                             ),
                                           );
                                         },
@@ -775,26 +986,342 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+  void _showFilterOverlay() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(builder: (context, setModalState) {
+          return Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, -5),
+                ),
+              ],
+            ),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header
+                    Row(
+                      children: [
+                        Icon(Icons.filter_list, color: Colors.blue.shade800),
+                        const SizedBox(width: 10),
+                        const Text(
+                          'Filters',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Spacer(),
+                        TextButton.icon(
+                          onPressed: () {
+                            setModalState(() {
+                              _selectedModule = 'All';
+                              _selectedDateFilter = 'All';
+                              _selectedReadFilter = 'All';
+                            });
+                          },
+                          icon: Icon(Icons.refresh,
+                              size: 18, color: Colors.red.shade600),
+                          label: Text(
+                            'Reset Filters',
+                            style: TextStyle(
+                              color: Colors.red.shade600,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(),
+
+                    // Module Filter
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.category_outlined,
+                            size: 18,
+                            color: Colors.grey.shade800,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Module',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey.shade800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Wrap(
+                      spacing: 8.0,
+                      runSpacing: 8.0,
+                      children: _getUniqueModules().map((module) {
+                        return ChoiceChip(
+                          label: Text(module),
+                          selected: _selectedModule == module,
+                          selectedColor: Colors.blue.shade100,
+                          backgroundColor: Colors.grey.shade100,
+                          labelStyle: TextStyle(
+                            fontWeight: _selectedModule == module
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: _selectedModule == module
+                                ? Colors.blue.shade800
+                                : Colors.grey.shade800,
+                          ),
+                          onSelected: (selected) {
+                            setModalState(() {
+                              _selectedModule = selected ? module : 'All';
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+
+                    // Date Filter
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.date_range,
+                            size: 18,
+                            color: Colors.grey.shade800,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Date',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey.shade800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Wrap(
+                      spacing: 8.0,
+                      runSpacing: 8.0,
+                      children: _dateFilterOptions.map((dateOption) {
+                        return ChoiceChip(
+                          label: Text(dateOption),
+                          selected: _selectedDateFilter == dateOption,
+                          selectedColor: Colors.blue.shade100,
+                          backgroundColor: Colors.grey.shade100,
+                          labelStyle: TextStyle(
+                            fontWeight: _selectedDateFilter == dateOption
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: _selectedDateFilter == dateOption
+                                ? Colors.blue.shade800
+                                : Colors.grey.shade800,
+                          ),
+                          onSelected: (selected) {
+                            setModalState(() {
+                              _selectedDateFilter =
+                                  selected ? dateOption : 'All';
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+
+                    // Read/Unread Filter
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.mark_email_read,
+                            size: 18,
+                            color: Colors.grey.shade800,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Status',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey.shade800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Wrap(
+                      spacing: 8.0,
+                      runSpacing: 8.0,
+                      children: _readFilterOptions.map((readOption) {
+                        return ChoiceChip(
+                          label: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                readOption == 'Read'
+                                    ? Icons.visibility
+                                    : readOption == 'Unread'
+                                        ? Icons.visibility_off
+                                        : Icons.remove_red_eye,
+                                size: 16,
+                                color: _selectedReadFilter == readOption
+                                    ? Colors.blue.shade800
+                                    : Colors.grey.shade700,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(readOption),
+                            ],
+                          ),
+                          selected: _selectedReadFilter == readOption,
+                          selectedColor: Colors.blue.shade100,
+                          backgroundColor: Colors.grey.shade100,
+                          labelStyle: TextStyle(
+                            fontWeight: _selectedReadFilter == readOption
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: _selectedReadFilter == readOption
+                                ? Colors.blue.shade800
+                                : Colors.grey.shade800,
+                          ),
+                          onSelected: (selected) {
+                            setModalState(() {
+                              _selectedReadFilter =
+                                  selected ? readOption : 'All';
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+
+                    // Apply Button
+                    const SizedBox(height: 24.0),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50.0,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            // Set _showFilters to true when filters are applied
+                            _showFilters = (_selectedModule != 'All' ||
+                                _selectedDateFilter != 'All' ||
+                                _selectedReadFilter != 'All');
+                          });
+                          Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue.shade700,
+                          foregroundColor: Colors.white,
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Apply Filters',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8.0),
+                  ],
+                ),
+              ),
+            ),
+          );
+        });
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Check if any filters are active
+    final bool hasActiveFilters =
+        (_selectedModule != null && _selectedModule != 'All') ||
+            (_selectedDateFilter != null && _selectedDateFilter != 'All') ||
+            (_selectedReadFilter != null && _selectedReadFilter != 'All');
+
     return GestureSidebar(
       scaffoldKey: _scaffoldKey,
       child: Scaffold(
         key: _scaffoldKey,
+        // Darkened background color for better contrast with white cards
+        backgroundColor: Colors.grey.shade100,
         appBar: AppBar(
           title: _isSearchVisible
-              ? TextField(
-                  controller: _searchController,
-                  autofocus: true,
-                  decoration: const InputDecoration(
-                    hintText: 'Search...',
-                    hintStyle: TextStyle(color: Colors.white),
-                    border: InputBorder.none,
+              ? Container(
+                  width: double.infinity,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  style: const TextStyle(color: Colors.white),
-                  onChanged: (value) {
-                    setState(() {});
-                  },
+                  child: TextField(
+                    controller: _searchController,
+                    focusNode: _searchFocusNode,
+                    decoration: InputDecoration(
+                      hintText: 'Search...',
+                      hintStyle:
+                          TextStyle(color: Colors.white.withOpacity(0.7)),
+                      prefixIcon: const Icon(Icons.search, color: Colors.white),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.close,
+                                  color: Colors.white, size: 20),
+                              onPressed: () {
+                                setState(() {
+                                  _searchController.clear();
+                                  _searchQuery = '';
+                                });
+                              },
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 8, horizontal: 16),
+                    ),
+                    style: const TextStyle(color: Colors.white),
+                    onChanged: (value) {
+                      _onSearchChanged();
+                    },
+                    onSubmitted: (value) {
+                      if (value.isNotEmpty) {
+                        // Add search to history
+                        _addToSearchHistory(value);
+                        // Close keyboard and clear focus
+                        _searchFocusNode.unfocus();
+                      }
+                    },
+                    onTap: () {
+                      // Show search history when search field is tapped
+                      setState(() {
+                        _isSearchFocused = true;
+                      });
+                    },
+                  ),
                 )
               : const Text(
                   'Home',
@@ -809,7 +1336,9 @@ class _HomeScreenState extends State<HomeScreen>
           leading: IconButton(
             icon: const Icon(Icons.menu, color: Colors.white),
             onPressed: () {
-              _scaffoldKey.currentState!.openDrawer();
+              if (_scaffoldKey.currentState != null) {
+                _scaffoldKey.currentState!.openDrawer();
+              }
             },
           ),
           actions: [
@@ -818,33 +1347,41 @@ class _HomeScreenState extends State<HomeScreen>
                   color: Colors.white),
               onPressed: _toggleSearch,
             ),
-            IconButton(
-              icon: const Icon(Icons.filter_list, color: Colors.white),
-              onPressed: () {
-                setState(() {
-                  _showFilters = !_showFilters;
-                });
-              },
-            ),
-            // Notification bell icon removed
-          ],
-          bottom: PreferredSize(
-            preferredSize: Size.fromHeight(_showFilters ? 100 : 48),
-            child: Column(
+            // Filter icon with visual indicator when filters are active
+            Stack(
+              clipBehavior: Clip.none,
               children: [
-                TabBar(
-                  controller: _tabController,
-                  indicatorColor: Colors.white,
-                  labelColor: Colors.white,
-                  unselectedLabelColor: Colors.white70,
-                  tabs: const [
-                    Tab(text: 'Notifications'),
-                    Tab(text: 'Announcements'),
-                  ],
+                IconButton(
+                  icon: const Icon(Icons.filter_list, color: Colors.white),
+                  onPressed: _showFilterOverlay,
                 ),
-                if (_showFilters) _buildFilterOptions(),
+                if (hasActiveFilters)
+                  Positioned(
+                    right: 10,
+                    top: 10,
+                    child: Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: Colors.amber,
+                        shape: BoxShape.circle,
+                        border:
+                            Border.all(color: Colors.blue.shade700, width: 1.5),
+                      ),
+                    ),
+                  ),
               ],
             ),
+          ],
+          bottom: TabBar(
+            controller: _tabController,
+            indicatorColor: Colors.white,
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
+            tabs: const [
+              Tab(text: 'Notifications'),
+              Tab(text: 'Announcements'),
+            ],
           ),
         ),
         drawer: Sidebar(
@@ -861,11 +1398,22 @@ class _HomeScreenState extends State<HomeScreen>
             }
           },
         ),
-        body: TabBarView(
-          controller: _tabController,
+        body: Column(
           children: [
-            _buildNotificationsTab(),
-            _buildAnnouncementsTab(),
+            // Display the horizontal search history banner when there is search history
+            if (_isSearchVisible && _searchHistory.isNotEmpty)
+              _buildRecentSearchesBanner(),
+            
+            // Main tab content
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildNotificationsTab(),
+                  _buildAnnouncementsTab(),
+                ],
+              ),
+            ),
           ],
         ),
         bottomNavigationBar: const BottomBar(currentIndex: 0),
@@ -880,15 +1428,15 @@ class _HomeScreenState extends State<HomeScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Filter title row
+          // Filter title row with improved layout
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: Row(
               children: [
-                Icon(Icons.filter_alt_outlined, size: 18, color: Colors.blue.shade800),
+                Icon(Icons.filter_list, size: 18, color: Colors.blue.shade800),
                 const SizedBox(width: 8),
                 Text(
-                  'Filters',
+                  'Active Filters',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.blue.shade800,
@@ -896,7 +1444,7 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ),
                 const Spacer(),
-                // Reset filters button
+                // Reset filters button with improved appearance
                 InkWell(
                   onTap: () {
                     setState(() {
@@ -909,10 +1457,11 @@ class _HomeScreenState extends State<HomeScreen>
                     padding: const EdgeInsets.all(5),
                     child: Row(
                       children: [
-                        Icon(Icons.refresh, size: 14, color: Colors.red.shade600),
+                        Icon(Icons.refresh,
+                            size: 14, color: Colors.red.shade600),
                         const SizedBox(width: 4),
                         Text(
-                          'Reset All',
+                          'Reset',
                           style: TextStyle(
                             fontSize: 13,
                             color: Colors.red.shade600,
@@ -927,84 +1476,96 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
 
-          // Filter chips in horizontal scroll
+          // Filter chips in horizontal scroll with improved spacing
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                // Module filter
-                Padding(
-                  padding: const EdgeInsets.only(right: 10),
-                  child: FilterChip(
-                    label: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.category_outlined, size: 14, color: Colors.blue.shade700),
-                        const SizedBox(width: 4),
-                        Text(
-                          _selectedModule ?? 'All Modules',
-                          style: TextStyle(
-                            color: Colors.blue.shade700,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 13,
+                // Module filter with improved appearance
+                if (_selectedModule != null)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 10),
+                    child: FilterChip(
+                      label: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.category_outlined,
+                              size: 14, color: Colors.blue.shade700),
+                          const SizedBox(width: 4),
+                          Text(
+                            _selectedModule == 'All'
+                                ? 'All Modules'
+                                : _selectedModule!,
+                            style: TextStyle(
+                              color: Colors.blue.shade700,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 13,
+                            ),
                           ),
-                        ),
-                        Icon(Icons.arrow_drop_down, size: 14, color: Colors.blue.shade700),
-                      ],
+                          Icon(Icons.arrow_drop_down,
+                              size: 14, color: Colors.blue.shade700),
+                        ],
+                      ),
+                      backgroundColor: Colors.white,
+                      checkmarkColor: Colors.transparent,
+                      showCheckmark: false,
+                      selected: _selectedModule != 'All',
+                      selectedColor: Colors.blue.shade50,
+                      onSelected: (_) {
+                        // Show module selection dialog
+                        _showModuleFilterDialog();
+                      },
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        side: BorderSide(color: Colors.blue.shade300),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 8),
                     ),
-                    backgroundColor: Colors.white,
-                    checkmarkColor: Colors.transparent,
-                    showCheckmark: false,
-                    selected: false,
-                    selectedColor: Colors.white,
-                    onSelected: (_) {
-                      // Show module selection dialog
-                      _showModuleFilterDialog();
-                    },
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      side: BorderSide(color: Colors.blue.shade300),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   ),
-                ),
 
-                // Date filter
-                Padding(
-                  padding: const EdgeInsets.only(right: 10),
-                  child: FilterChip(
-                    label: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.calendar_today, size: 14, color: Colors.blue.shade700),
-                        const SizedBox(width: 4),
-                        Text(
-                          _selectedDateFilter ?? 'All Dates',
-                          style: TextStyle(
-                            color: Colors.blue.shade700,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 13,
+                // Date filter with improved appearance
+                if (_selectedDateFilter != null)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 10),
+                    child: FilterChip(
+                      label: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.calendar_today,
+                              size: 14, color: Colors.blue.shade700),
+                          const SizedBox(width: 4),
+                          Text(
+                            _selectedDateFilter == 'All'
+                                ? 'All Dates'
+                                : _selectedDateFilter!,
+                            style: TextStyle(
+                              color: Colors.blue.shade700,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 13,
+                            ),
                           ),
-                        ),
-                        Icon(Icons.arrow_drop_down, size: 14, color: Colors.blue.shade700),
-                      ],
+                          Icon(Icons.arrow_drop_down,
+                              size: 14, color: Colors.blue.shade700),
+                        ],
+                      ),
+                      backgroundColor: Colors.white,
+                      checkmarkColor: Colors.transparent,
+                      showCheckmark: false,
+                      selected: _selectedDateFilter != 'All',
+                      selectedColor: Colors.blue.shade50,
+                      onSelected: (_) {
+                        // Show date filter dialog
+                        _showDateFilterDialog();
+                      },
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        side: BorderSide(color: Colors.blue.shade300),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 8),
                     ),
-                    backgroundColor: Colors.white,
-                    checkmarkColor: Colors.transparent,
-                    showCheckmark: false,
-                    selected: false,
-                    selectedColor: Colors.white,
-                    onSelected: (_) {
-                      // Show date filter dialog
-                      _showDateFilterDialog();
-                    },
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      side: BorderSide(color: Colors.blue.shade300),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   ),
-                ),
               ],
             ),
           ),
@@ -1020,7 +1581,8 @@ class _HomeScreenState extends State<HomeScreen>
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.category_outlined, color: Colors.blue.shade700, size: 20),
+            Icon(Icons.category_outlined,
+                color: Colors.blue.shade700, size: 20),
             const SizedBox(width: 8),
             const Text('Select Module'),
           ],
@@ -1052,7 +1614,8 @@ class _HomeScreenState extends State<HomeScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: TextStyle(color: Colors.grey.shade700)),
+            child:
+                Text('Cancel', style: TextStyle(color: Colors.grey.shade700)),
           ),
         ],
         contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
@@ -1100,7 +1663,8 @@ class _HomeScreenState extends State<HomeScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: TextStyle(color: Colors.grey.shade700)),
+            child:
+                Text('Cancel', style: TextStyle(color: Colors.grey.shade700)),
           ),
         ],
         contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
@@ -1146,15 +1710,27 @@ class _HomeScreenState extends State<HomeScreen>
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            // Dull white background for read cards, bright white for unread
+            color: isUnread ? Colors.white : Colors.grey.shade50,
             borderRadius: BorderRadius.circular(20),
+            // Modified shadows using consistent blue colors
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.shade200,
-                blurRadius: 10,
-                offset: const Offset(0, 5),
-                spreadRadius: 2,
+                color: isUnread 
+                  ? Colors.blue.withOpacity(0.25)
+                  : Colors.grey.shade300.withOpacity(0.5),
+                blurRadius: isUnread ? 10 : 6,
+                offset: isUnread ? const Offset(0, 4) : const Offset(0, 2),
+                spreadRadius: isUnread ? 1 : 0,
               ),
+              // Second shadow layer only for unread items
+              if (isUnread)
+                BoxShadow(
+                  color: Colors.blue.withOpacity(0.08),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                  spreadRadius: 0,
+                ),
             ],
           ),
           child: Material(
@@ -1170,137 +1746,97 @@ class _HomeScreenState extends State<HomeScreen>
                 _showNotificationDetails(notification);
               },
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(16.0), // Consistent padding with announcements
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Header with module tag and time
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 6),
-                      child: Row(
-                        children: [
-                          // System or Module tag pill
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: isSystemNotification
-                                  ? Colors.green.shade50
-                                  : Colors.indigo.shade50,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                  color: isSystemNotification
-                                      ? Colors.green.shade100
-                                      : Colors.indigo.shade100,
-                                  width: 0.5),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  isSystemNotification
-                                      ? Icons.check_circle_outline
-                                      : _getModuleTypeIcon(
-                                          notification['module']),
-                                  size: 12,
-                                  color: isSystemNotification
-                                      ? Colors.green.shade700
-                                      : Colors.indigo.shade700,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  isSystemNotification
-                                      ? 'System'
-                                      : notification['module'],
-                                  style: TextStyle(
-                                    color: isSystemNotification
-                                        ? Colors.green.shade700
-                                        : Colors.indigo.shade700,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
+                    Row(
+                      children: [
+                        // System or Module tag pill with blue color (changed from indigo)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: isUnread ? Colors.blue.shade50 : Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                                color: isUnread ? Colors.blue.shade100 : Colors.grey.shade300,
+                                width: 0.5),
                           ),
-                          const Spacer(),
-                          // Time indicator
-                          Text(
-                            _formatDate(notification['date']),
-                            style: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: 12,
-                            ),
-                          ),
-                          if (isUnread)
-                            Container(
-                              margin: const EdgeInsets.only(left: 6),
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                color: isSystemNotification
-                                    ? Colors.green.shade600
-                                    : Colors.blue.shade600,
-                                shape: BoxShape.circle,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isSystemNotification
+                                    ? Icons.check_circle_outline
+                                    : _getModuleTypeIcon(
+                                        notification['module']),
+                                size: 12,
+                                color: isUnread ? Colors.blue.shade700 : Colors.grey.shade600,
                               ),
+                              const SizedBox(width: 4),
+                              Text(
+                                isSystemNotification
+                                    ? 'System'
+                                    : notification['module'],
+                                style: TextStyle(
+                                  color: isUnread ? Colors.blue.shade700 : Colors.grey.shade600,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const Spacer(),
+                        // Time indicator
+                        Text(
+                          _formatDate(notification['date']),
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 12,
+                          ),
+                        ),
+                        if (isUnread)
+                          Container(
+                            margin: const EdgeInsets.only(left: 6),
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade600,
+                              shape: BoxShape.circle,
                             ),
-                        ],
-                      ),
+                          ),
+                      ],
                     ),
 
-                    // Content section
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    const SizedBox(height: 12),
+
+                    // Title with one line and ellipsis - using isRead to control color
+                    _highlightSearchText(
+                      notification['title'],
+                      maxLines: 1,
+                      isBold: true,
+                      fontSize: 16,
+                      isRead: !isUnread, // Pass isRead flag to control title color
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // Content text
+                    RichText(
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      text: TextSpan(
                         children: [
-                          // Title with one line and ellipsis
-                          Text(
-                            notification['title'],
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          TextSpan(
+                            text: notification['content'],
                             style: TextStyle(
-                              fontWeight: isUnread ? FontWeight.bold : FontWeight.w600,
-                              fontSize: 16,
-                              color: Colors.grey.shade900,
-                              height: 1.3,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          
-                          // Content with two lines and ellipsis for all notifications
-                          Text(
-                            notification['content'],
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: Colors.grey.shade700,
                               fontSize: 14,
-                              height: 1.5,
-                            ),
-                          ),
-                          
-                          // "View more" indicator
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Text(
-                                  'View more',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.blue.shade700,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Icon(
-                                  Icons.arrow_forward_ios,
-                                  size: 10,
-                                  color: Colors.blue.shade700,
-                                ),
-                              ],
+                              color: isUnread ? Colors.grey.shade900 : Colors.grey.shade700,
+                              height: 1.3,
                             ),
                           ),
                         ],
@@ -1318,7 +1854,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildAnnouncementsTab() {
     final filteredAnnouncements = _getFilteredAnnouncements();
-    
+
     if (filteredAnnouncements.isEmpty) {
       return Center(
         child: Column(
@@ -1350,19 +1886,33 @@ class _HomeScreenState extends State<HomeScreen>
         final isUnread = announcement['isUnread'] as bool;
         final hasAttachment = announcement['hasAttachment'] as bool? ?? false;
         final title = announcement['title'] as String;
-        
+
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            // Dull white background for read cards, bright white for unread
+            color: isUnread ? Colors.white : Colors.grey.shade50,
             borderRadius: BorderRadius.circular(20),
+            // Modified shadows to have zero on top, minimal on sides, decreased on bottom
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.shade200,
-                blurRadius: 10,
-                offset: const Offset(0, 5),
-                spreadRadius: 2,
+                color: isUnread 
+                  ? Colors.blue.withOpacity(0.25)
+                  : Colors.grey.shade300.withOpacity(0.5),
+                blurRadius: isUnread ? 10 : 6,
+                // Setting y offset positive but x offset to 0 to have shadow only on bottom
+                offset: isUnread ? const Offset(0, 4) : const Offset(0, 2),
+                // Reduced spread radius to decrease the shadow spread
+                spreadRadius: isUnread ? 1 : 0,
               ),
+              // Second shadow layer only for unread items, focused on bottom
+              if (isUnread)
+                BoxShadow(
+                  color: Colors.blue.withOpacity(0.08),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                  spreadRadius: 0,
+                ),
             ],
           ),
           child: Material(
@@ -1374,7 +1924,7 @@ class _HomeScreenState extends State<HomeScreen>
                 setState(() {
                   announcement['isUnread'] = false;
                 });
-                
+
                 // Show announcement details in bottom sheet
                 _showAnnouncementDetails(announcement);
               },
@@ -1386,13 +1936,16 @@ class _HomeScreenState extends State<HomeScreen>
                     // Module and time row
                     Row(
                       children: [
-                        // Module tag pill
+                        // Module tag pill with blue colors to match notification style
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
-                            color: Colors.indigo.shade50,
+                            color: isUnread ? Colors.blue.shade50 : Colors.grey.shade100,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.indigo.shade100, width: 0.5),
+                            border: Border.all(
+                                color: isUnread ? Colors.blue.shade100 : Colors.grey.shade300,
+                                width: 0.5),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -1400,13 +1953,13 @@ class _HomeScreenState extends State<HomeScreen>
                               Icon(
                                 _getModuleTypeIcon(announcement['module']),
                                 size: 12,
-                                color: Colors.indigo.shade700,
+                                color: isUnread ? Colors.blue.shade700 : Colors.grey.shade600,
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 announcement['module'],
                                 style: TextStyle(
-                                  color: Colors.indigo.shade700,
+                                  color: isUnread ? Colors.blue.shade700 : Colors.grey.shade600,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -1414,7 +1967,7 @@ class _HomeScreenState extends State<HomeScreen>
                             ],
                           ),
                         ),
-                        
+
                         // Attachment indicator
                         if (hasAttachment)
                           Padding(
@@ -1425,7 +1978,7 @@ class _HomeScreenState extends State<HomeScreen>
                               color: Colors.grey.shade600,
                             ),
                           ),
-                        
+
                         const Spacer(),
                         // Time indicator
                         Text(
@@ -1447,55 +2000,33 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 12),
-                    
-                    // Title with one line and ellipsis
-                    Text(
+
+                    // Title with one line and ellipsis - now with grey color for read cards
+                    _highlightSearchText(
                       title,
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontWeight: isUnread ? FontWeight.bold : FontWeight.w600,
-                        fontSize: 15,
-                        color: Colors.grey.shade900,
-                        height: 1.3,
-                      ),
+                      isBold: true,
+                      fontSize: 15,
+                      isRead: !isUnread, // Pass isRead flag to control title color
                     ),
-                    
+
                     const SizedBox(height: 10),
-                    
-                    // Preview of content with ellipsis
-                    Text(
-                      announcement['content'],
+
+                    // Content text
+                    RichText(
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade700,
-                        height: 1.5,
-                      ),
-                    ),
-                    
-                    // "View more" indicator
-                    Padding(
-                      padding: const EdgeInsets.only(top: 10.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                      text: TextSpan(
                         children: [
-                          Text(
-                            'View more',
+                          TextSpan(
+                            text: announcement['content'],
                             style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.blue.shade700,
-                              fontWeight: FontWeight.w500,
+                              fontSize: 13,
+                              color: isUnread ? Colors.grey.shade900 : Colors.grey.shade700,
+                              height: 1.3,
                             ),
-                          ),
-                          const SizedBox(width: 4),
-                          Icon(
-                            Icons.arrow_forward_ios,
-                            size: 10,
-                            color: Colors.blue.shade700,
                           ),
                         ],
                       ),
@@ -1559,5 +2090,357 @@ class _HomeScreenState extends State<HomeScreen>
       default:
         return Icons.notifications;
     }
+  }
+
+  // Add search history display widget
+  Widget _buildSearchHistoryList() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            spreadRadius: 1,
+          ),
+        ],
+        borderRadius: const BorderRadius.vertical(
+          bottom: Radius.circular(16),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            child: Row(
+              children: [
+                Icon(Icons.history, size: 16, color: Colors.blue.shade700),
+                const SizedBox(width: 8),
+                Text(
+                  'Recent Searches',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.blue.shade900,
+                    fontSize: 14,
+                  ),
+                ),
+                const Spacer(),
+                if (_searchHistory.isNotEmpty)
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _searchHistory.clear();
+                      });
+                    },
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      'Clear All',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.red.shade600,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          _searchHistory.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Center(
+                    child: Text(
+                      'No recent searches',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                )
+              : ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount:
+                      _searchHistory.length > 5 ? 5 : _searchHistory.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      dense: true,
+                      horizontalTitleGap: 0,
+                      leading: Icon(
+                        Icons.search,
+                        size: 18,
+                        color: Colors.grey.shade600,
+                      ),
+                      title: Text(
+                        _searchHistory[index],
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                      trailing: IconButton(
+                        icon: Icon(
+                          Icons.north_west,
+                          size: 16,
+                          color: Colors.blue.shade700,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _searchController.text = _searchHistory[index];
+                            _searchQuery = _searchHistory[index];
+                            _isSearching = true;
+                            _searchFocusNode.unfocus();
+                          });
+                        },
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                      onTap: () {
+                        setState(() {
+                          _searchController.text = _searchHistory[index];
+                          _searchQuery = _searchHistory[index];
+                          _isSearching = true;
+                        });
+                      },
+                    );
+                  },
+                ),
+        ],
+      ),
+    );
+  }
+
+  // Create a more visually appealing search history panel
+  Widget _buildSearchHistoryPanel() {
+    return Material(
+      elevation: 4,
+      borderRadius: const BorderRadius.only(
+        bottomLeft: Radius.circular(16),
+        bottomRight: Radius.circular(16),
+      ),
+      child: Container(
+        width: double.infinity,
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.4,
+        ),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(16),
+            bottomRight: Radius.circular(16),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header with Clear All button
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 12, 8),
+              child: Row(
+                children: [
+                  Icon(Icons.history, size: 18, color: Colors.blue.shade700),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Recent Searches',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.blue.shade900,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (_searchHistory.isNotEmpty)
+                    TextButton.icon(
+                      icon: Icon(Icons.delete_outline,
+                          size: 16, color: Colors.red.shade600),
+                      label: Text(
+                        'Clear All',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.red.shade600,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _searchHistory.clear();
+                        });
+                      },
+                    ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+
+            // Search history list or empty state
+            _searchHistory.isEmpty
+                ? Container(
+                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.search_off,
+                            size: 36,
+                            color: Colors.grey.shade400,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'No recent searches',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : Flexible(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      padding: EdgeInsets.zero,
+                      itemCount: _searchHistory.length,
+                      itemBuilder: (context, index) {
+                        final searchTerm = _searchHistory[index];
+                        return ListTile(
+                          dense: true,
+                          leading: Icon(
+                            Icons.search,
+                            size: 18,
+                            color: Colors.grey.shade700,
+                          ),
+                          title: Text(
+                            searchTerm,
+                            style: const TextStyle(
+                              fontSize: 15,
+                            ),
+                          ),
+                          trailing: Icon(
+                            Icons.north_west,
+                            size: 16,
+                            color: Colors.blue.shade700,
+                          ),
+                          onTap: () {
+                            setState(() {
+                              _searchController.text = searchTerm;
+                              _searchQuery = searchTerm;
+                              _isSearchFocused = false;
+                              _showSearchHistory = false;
+                              _searchFocusNode.unfocus();
+                            });
+                          },
+                          hoverColor: Colors.blue.shade50,
+                        );
+                      },
+                    ),
+                  ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Custom widget to show recent searches in a horizontal banner
+  Widget _buildRecentSearchesBanner() {
+    if (_searchHistory.isEmpty) {
+      return Container(); // Return empty container if no search history
+    }
+    
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            // Search history chips
+            for (int i = 0; i < _searchHistory.length; i++)
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: ActionChip(
+                  label: Text(
+                    _searchHistory[i],
+                    style: TextStyle(
+                      color: Colors.blue.shade800,
+                      fontSize: 13,
+                    ),
+                  ),
+                  backgroundColor: Colors.blue.shade50,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(
+                      color: Colors.blue.shade200,
+                      width: 0.5,
+                    ),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () {
+                    setState(() {
+                      _searchController.text = _searchHistory[i];
+                      _searchQuery = _searchHistory[i];
+                      _searchFocusNode.unfocus();
+                    });
+                  },
+                ),
+              ),
+              
+            // Clear all button at the end with dustbin icon and "Clear recent" text
+            ActionChip(
+              avatar: Icon(
+                Icons.delete,
+                size: 16,
+                color: Colors.red.shade600,
+              ),
+              label: Text(
+                'Clear recent',
+                style: TextStyle(
+                  color: Colors.red.shade600,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              backgroundColor: Colors.red.shade50,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(
+                  color: Colors.red.shade200,
+                  width: 0.5,
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              onPressed: () {
+                setState(() {
+                  _searchHistory.clear();
+                });
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

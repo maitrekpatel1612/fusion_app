@@ -18,41 +18,41 @@ class BottomBar extends StatefulWidget {
 
 class _BottomBarState extends State<BottomBar> with TickerProviderStateMixin {
   late int _previousIndex;
-  
+
   // Animation controllers
   late AnimationController _slideController;
   late AnimationController _fadeController;
-  
+
   @override
   void initState() {
     super.initState();
     _previousIndex = widget.currentIndex;
-    
+
     _slideController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    
+
     _fadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 200),
     );
-    
+
     _fadeController.forward();
   }
-  
+
   @override
   void didUpdateWidget(BottomBar oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.currentIndex != widget.currentIndex) {
       _previousIndex = oldWidget.currentIndex;
-      
+
       // Reset and run animations
       _slideController.forward(from: 0.0);
       _fadeController.forward(from: 0.0);
     }
   }
-  
+
   @override
   void dispose() {
     _slideController.dispose();
@@ -66,13 +66,13 @@ class _BottomBarState extends State<BottomBar> with TickerProviderStateMixin {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final bottomPadding = mediaQuery.padding.bottom;
-    
+
     // Increased height calculation to accommodate larger elements (+5px)
     final barHeight = 70.0 + bottomPadding; // Increased from 65.0 to 70.0
-    
+
     // Determine if we need to use compact mode for small screens
     final bool useCompactMode = screenWidth < 340;
-    
+
     return Container(
       height: barHeight,
       decoration: BoxDecoration(
@@ -98,10 +98,26 @@ class _BottomBarState extends State<BottomBar> with TickerProviderStateMixin {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _buildNavItem(context, index: 0, icon: Icons.home, label: "Home", compact: useCompactMode),
-              _buildNavItem(context, index: 1, icon: Icons.book, label: "Modules", compact: useCompactMode),
-              _buildNavItem(context, index: 2, icon: Icons.search, label: "Search", compact: useCompactMode),
-              _buildNavItem(context, index: 3, icon: Icons.person, label: "Profile", compact: useCompactMode),
+              _buildNavItem(context,
+                  index: 0,
+                  icon: Icons.home,
+                  label: "Home",
+                  compact: useCompactMode),
+              _buildNavItem(context,
+                  index: 1,
+                  icon: Icons.book,
+                  label: "Modules",
+                  compact: useCompactMode),
+              _buildNavItem(context,
+                  index: 2,
+                  icon: Icons.search,
+                  label: "Search",
+                  compact: useCompactMode),
+              _buildNavItem(context,
+                  index: 3,
+                  icon: Icons.person,
+                  label: "Profile",
+                  compact: useCompactMode),
             ],
           ),
         ),
@@ -118,8 +134,9 @@ class _BottomBarState extends State<BottomBar> with TickerProviderStateMixin {
   }) {
     final isSelected = index == widget.currentIndex;
     final availableWidth = MediaQuery.of(context).size.width / 4;
-    final maxLabelWidth = availableWidth - 8; // Reduced padding for more text space
-    
+    final maxLabelWidth =
+        availableWidth - 8; // Reduced padding for more text space
+
     return Expanded(
       child: InkWell(
         splashColor: Colors.transparent,
@@ -128,21 +145,24 @@ class _BottomBarState extends State<BottomBar> with TickerProviderStateMixin {
         child: AnimatedBuilder(
           animation: Listenable.merge([_slideController, _fadeController]),
           builder: (context, _) {
-            final isLeaving = index == _previousIndex && _previousIndex != widget.currentIndex;
-            final isEntering = index == widget.currentIndex && _previousIndex != widget.currentIndex;
-            
+            final isLeaving = index == _previousIndex &&
+                _previousIndex != widget.currentIndex;
+            final isEntering = index == widget.currentIndex &&
+                _previousIndex != widget.currentIndex;
+
             double opacity = 1.0;
             if (isLeaving) {
               opacity = 1.0 - (_slideController.value * 0.2);
             } else if (isEntering) {
               opacity = 0.8 + (_slideController.value * 0.2);
             }
-            
+
             // Color transitions
-            final Color iconColor = isSelected 
-              ? Color.lerp(Colors.grey, Colors.blue.shade700, _fadeController.value)!
-              : Colors.grey;
-            
+            final Color iconColor = isSelected
+                ? Color.lerp(
+                    Colors.grey, Colors.blue.shade700, _fadeController.value)!
+                : Colors.grey;
+
             return Opacity(
               opacity: opacity,
               child: SizedBox(
@@ -154,7 +174,9 @@ class _BottomBarState extends State<BottomBar> with TickerProviderStateMixin {
                   children: [
                     Icon(
                       icon,
-                      size: isSelected ? 28 : 24, // Slightly reduced to prevent overflow
+                      size: isSelected
+                          ? 28
+                          : 24, // Slightly reduced to prevent overflow
                       color: iconColor,
                     ),
                     SizedBox(height: compact ? 2 : 3), // Increased spacing
@@ -163,9 +185,9 @@ class _BottomBarState extends State<BottomBar> with TickerProviderStateMixin {
                         maxWidth: maxLabelWidth,
                         maxHeight: 20, // Added explicit height constraint
                       ),
-                      child: isSelected 
-                        ? _buildSelectedLabel(label, compact)
-                        : _buildUnselectedLabel(label, compact),
+                      child: isSelected
+                          ? _buildSelectedLabel(label, compact)
+                          : _buildUnselectedLabel(label, compact),
                     ),
                   ],
                 ),
@@ -176,16 +198,17 @@ class _BottomBarState extends State<BottomBar> with TickerProviderStateMixin {
       ),
     );
   }
-  
+
   Widget _buildSelectedLabel(String label, bool compact) {
     // For very small screens, still show minimal text
     if (MediaQuery.of(context).size.width < 280) {
       // Show at least 3 characters instead of just a dot
-      String shortText = label.substring(0, label.length > 3 ? 3 : label.length);
+      String shortText =
+          label.substring(0, label.length > 3 ? 3 : label.length);
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
         decoration: BoxDecoration(
-          color: Colors.blue.shade600,
+          color: Colors.blue.shade700,
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
@@ -206,23 +229,24 @@ class _BottomBarState extends State<BottomBar> with TickerProviderStateMixin {
         ),
       );
     }
-    
+
     // Allow more characters for profile text
     int maxChars = compact ? 6 : 8;
     // Special case for "Profile" to ensure it fits
     if (label == "Profile") {
       maxChars = compact ? 7 : 9;
     }
-    
-    String displayText = label.length > maxChars ? label.substring(0, maxChars) : label;
-        
+
+    String displayText =
+        label.length > maxChars ? label.substring(0, maxChars) : label;
+
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: compact ? 4 : 6,
         vertical: 2,
       ),
       decoration: BoxDecoration(
-        color: Colors.blue.shade600,
+        color: Colors.blue.shade700,
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
@@ -246,12 +270,13 @@ class _BottomBarState extends State<BottomBar> with TickerProviderStateMixin {
       ),
     );
   }
-  
+
   Widget _buildUnselectedLabel(String label, bool compact) {
     // For very small screens, still show some text
     if (MediaQuery.of(context).size.width < 280) {
       // Show at least 2 characters
-      String shortText = label.substring(0, label.length > 2 ? 2 : label.length);
+      String shortText =
+          label.substring(0, label.length > 2 ? 2 : label.length);
       return Text(
         shortText,
         style: const TextStyle(
@@ -262,16 +287,17 @@ class _BottomBarState extends State<BottomBar> with TickerProviderStateMixin {
         textAlign: TextAlign.center,
       );
     }
-    
+
     // Allow more characters for regular display
     int maxChars = compact ? 6 : 8;
     // Special case for "Profile" to ensure it fits
     if (label == "Profile") {
       maxChars = compact ? 7 : 9;
     }
-    
-    String displayText = label.length > maxChars ? label.substring(0, maxChars) : label;
-    
+
+    String displayText =
+        label.length > maxChars ? label.substring(0, maxChars) : label;
+
     return Text(
       displayText,
       style: TextStyle(
@@ -318,7 +344,8 @@ class _BottomBarState extends State<BottomBar> with TickerProviderStateMixin {
         Navigator.push(
           context,
           PageRouteBuilder(
-            pageBuilder: (_, __, ___) => const SearchScreen(autoFocusSearch: false),
+            pageBuilder: (_, __, ___) =>
+                const SearchScreen(autoFocusSearch: false),
             transitionDuration: Duration.zero,
           ),
         );
