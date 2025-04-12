@@ -36,13 +36,16 @@ class _ModulesScreenState extends State<ModulesScreen> with TickerProviderStateM
     Module(id: '14', title: 'Alumni Network', icon: Icons.group, size: ModuleSize.small),
     Module(id: '15', title: 'Research', icon: Icons.science, size: ModuleSize.medium),
   ];
+  
+  // Recently used modules - typically this would be dynamic based on user usage
+  final List<Module> _recentModules = [];
 
   @override
   void initState() {
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 1500), // Increased from 1000 to 1500 milliseconds
     );
     _scrollController = ScrollController();
     _animationController.forward();
@@ -52,6 +55,9 @@ class _ModulesScreenState extends State<ModulesScreen> with TickerProviderStateM
     for (int i = 0; i < _modules.length; i++) {
       _modules[i].size = sizes[i % 3];
     }
+    
+    // Initialize recent modules with first 4 modules (normally would be from usage history)
+    _recentModules.addAll(_modules.take(4));
   }
 
   @override
@@ -97,11 +103,11 @@ class _ModulesScreenState extends State<ModulesScreen> with TickerProviderStateM
           icon: const Icon(Icons.menu),
           onPressed: () => _scaffoldKey.currentState?.openDrawer(),
         ),
-        // Removed search icon from actions
-        shape: const RoundedRectangleBorder(
+        // Update shape to use continuous rounded corners for a more circular appearance
+        shape: const ContinuousRectangleBorder(
           borderRadius: BorderRadius.only(
-            bottomLeft: Radius.circular(35),
-            bottomRight: Radius.circular(35),
+            bottomLeft: Radius.circular(40),
+            bottomRight: Radius.circular(40),
           ),
         ),
       ),
@@ -161,24 +167,68 @@ class _ModulesScreenState extends State<ModulesScreen> with TickerProviderStateM
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Welcome back,',
-                  style: TextStyle(
-                    fontSize: 17,
-                    color: Colors.black54,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 5),
+                // Recent Modules section
                 Text(
-                  'Explore your modules',
+                  'Recently Used',
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
                     color: Colors.grey[800],
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
+                
+                // Horizontal list of recent modules
+                SizedBox(
+                  height: 110, // Fixed height for the horizontal list
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: _recentModules.length,
+                    itemBuilder: (context, index) {
+                      // Create smaller, simplified versions of the module cards
+                      final module = _recentModules[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 12),
+                        child: AnimatedBuilder(
+                          animation: _animationController,
+                          builder: (context, child) {
+                            final delay = index * 0.05;
+                            final animation = CurvedAnimation(
+                              parent: _animationController,
+                              curve: Interval(
+                                delay.clamp(0.0, 0.4),
+                                (delay + 0.3).clamp(0.0, 1.0),
+                                curve: Curves.easeOut,
+                              ),
+                            );
+                            return Transform.translate(
+                              offset: Offset(50 * (1 - animation.value), 0),
+                              child: Opacity(
+                                opacity: animation.value,
+                                child: child,
+                              ),
+                            );
+                          },
+                          child: _buildRecentModuleItem(module),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                
+                const SizedBox(height: 30),
+                
+                // All Modules section
+                Text(
+                  'All Modules',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                const SizedBox(height: 16),
               ],
             ),
           ),
@@ -191,6 +241,82 @@ class _ModulesScreenState extends State<ModulesScreen> with TickerProviderStateM
           ),
         ),
       ],
+    );
+  }
+
+  // Simplified module card for recent modules
+  Widget _buildRecentModuleItem(Module module) {
+    final moduleColor = moduleBlue;
+    return InkWell(
+      onTap: () {
+        if (module.id == '1') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const ExaminationDashboard(),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Opening ${module.title} module'),
+              duration: const Duration(seconds: 1),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        width: 110,
+        decoration: BoxDecoration(
+          color: moduleColor,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: moduleColor.withOpacity(0.2),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: moduleColor.withOpacity(0.2),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Icon(
+                module.icon,
+                color: moduleColor,
+                size: 24,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              module.title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -222,13 +348,13 @@ class StaggeredModuleGrid extends StatelessWidget {
           for (int j = 0; j < columnCount; j++) {
             int index = i + j;
             if (index < modules.length) {
-              // Animation delay based on position
-              final delay = index * 0.05;
+              // Animation delay based on position - increased for more pronounced staggering
+              final delay = index * 0.07; // Increased from 0.05 to 0.07
               final animation = CurvedAnimation(
                 parent: animationController,
                 curve: Interval(
-                  delay.clamp(0.0, 0.7),
-                  (delay + 0.4).clamp(0.0, 1.0),
+                  delay.clamp(0.0, 0.8), // Increased upper bound from 0.7 to 0.8
+                  (delay + 0.5).clamp(0.0, 1.0), // Increased duration from 0.4 to 0.5
                   curve: Curves.easeOutQuart,
                 ),
               );
@@ -275,7 +401,7 @@ class StaggeredModuleGrid extends StatelessWidget {
   Widget _buildModuleItem(Module module, BuildContext context) {
     // Use fixed size with increased height for longer cards
     return SizedBox(
-      height: 135, // Increased height from 120 to 135
+      height: 160, // Increased height from 135 to 160
       child: ModernModuleCard(
         module: module,
       ),
@@ -435,7 +561,6 @@ class _ModernModuleCardState extends State<ModernModuleCard> with SingleTickerPr
                     highlightColor: Colors.white.withOpacity(0.1),
                     // ... rest of the child widgets
                     child: Stack(
-                      // ... existing code...
                       clipBehavior: Clip.none,
                       children: [
                         // Main card body
@@ -466,9 +591,10 @@ class _ModernModuleCardState extends State<ModernModuleCard> with SingleTickerPr
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 14.0),
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start, // Left alignment for icon
+                            crossAxisAlignment: CrossAxisAlignment.center, // Changed from start to center
+                            mainAxisAlignment: MainAxisAlignment.center, // Added to center vertically
                             children: [
-                              // Module icon with floating container effect - larger size and left-aligned with scaling
+                              // Module icon with floating container effect - now centered
                               Transform.scale(
                                 scale: 1.0 + (0.1 * _hoverController.value), // Icon scales up by 10%
                                 child: Transform.translate(
@@ -501,31 +627,32 @@ class _ModernModuleCardState extends State<ModernModuleCard> with SingleTickerPr
                               // Small gap between icon and text
                               const SizedBox(height: 12),
                               
-                              // Module title directly below the icon with left alignment
+                              // Module title with increased font size and better wrapping - now center aligned
                               SizedBox(
-                                width: double.infinity, // Make container take full width
+                                width: double.infinity,
                                 child: Text(
                                   widget.module.title,
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                    height: 1.1,
+                                    fontSize: 16, // Increased from 14 to 16
+                                    height: 1.2, // Slightly increased line height for better readability
                                     letterSpacing: 0.2,
                                   ),
-                                  textAlign: TextAlign.left, // Left-aligned text
-                                  maxLines: 3, // Increased from 2 to 3 lines maximum
+                                  textAlign: TextAlign.center, // Center text horizontally
+                                  maxLines: 4, // Increased from 3 to 4 to allow more wrapping
                                   overflow: TextOverflow.ellipsis,
+                                  softWrap: true, // Explicitly enable text wrapping
                                 ),
                               ),
                               
-                              // Animated indicator line with nearly invisible initial state
+                              // Animated line that extends from left to right with no visible dot
                               LayoutBuilder(
                                 builder: (context, constraints) {
                                   return AnimatedContainer(
-                                    duration: const Duration(milliseconds: 100),
-                                    margin: const EdgeInsets.only(top: 5),
-                                    width: 2 + ((constraints.maxWidth - 2) * _hoverController.value), // Start at 2px (nearly invisible)
+                                    duration: const Duration(milliseconds: 250), // Increased from 100 to 250
+                                    margin: const EdgeInsets.only(top: 8), // Increased from 5 to 8 for better visibility
+                                    width: constraints.maxWidth * _hoverController.value, // Start from 0 and extend to full width
                                     height: 2,
                                     decoration: BoxDecoration(
                                       color: Colors.white.withOpacity(0.9),
@@ -535,8 +662,8 @@ class _ModernModuleCardState extends State<ModernModuleCard> with SingleTickerPr
                                 },
                               ),
                               
-                              // Add spacer to push everything to the top
-                              const Spacer(),
+                              // We'll remove the spacer and use mainAxisAlignment instead
+                              // to better center the content vertically
                             ],
                           ),
                         ),

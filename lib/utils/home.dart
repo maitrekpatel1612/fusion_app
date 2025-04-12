@@ -1849,19 +1849,12 @@ class _HomeScreenState extends State<HomeScreen>
             boxShadow: [
               BoxShadow(
                 color: isUnread 
-                  ? Colors.blue.withOpacity(0.25)
-                  : Colors.grey.shade300.withOpacity(0.5),
-                blurRadius: isUnread ? 10 : 6,
-                offset: isUnread ? const Offset(0, 4) : const Offset(0, 2),
-                spreadRadius: isUnread ? 1 : 0,
+                  ? Colors.blue.withOpacity(0.15) // Reduced opacity for subtler shadow
+                  : Colors.grey.shade300.withOpacity(0.3), // Reduced opacity
+                blurRadius: isUnread ? 6 : 4, // Reduced blur radius
+                offset: isUnread ? const Offset(0, 2) : const Offset(0, 1), // Smaller offset
+                spreadRadius: 0, // Removed spread radius for subtler effect
               ),
-              if (isUnread)
-                BoxShadow(
-                  color: Colors.blue.withOpacity(0.08),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
-                  spreadRadius: 0,
-                ),
             ],
           ),
           child: Material(
@@ -1921,11 +1914,11 @@ class _HomeScreenState extends State<HomeScreen>
                         ),
 
                         const Spacer(),
-                        // Time indicator
+                        // Time indicator with black text when unread
                         Text(
                           _formatDate(notification['date']),
                           style: TextStyle(
-                            color: Colors.grey.shade600,
+                            color: isUnread ? Colors.grey.shade900 : Colors.grey.shade600, // Changed to darker color for unread
                             fontSize: 12,
                           ),
                         ),
@@ -2056,19 +2049,12 @@ class _HomeScreenState extends State<HomeScreen>
             boxShadow: [
               BoxShadow(
                 color: isUnread 
-                  ? Colors.blue.withOpacity(0.25)
-                  : Colors.grey.shade300.withOpacity(0.5),
-                blurRadius: isUnread ? 10 : 6,
-                offset: isUnread ? const Offset(0, 4) : const Offset(0, 2),
-                spreadRadius: isUnread ? 1 : 0,
+                  ? Colors.blue.withOpacity(0.15) // Reduced opacity for subtler shadow
+                  : Colors.grey.shade300.withOpacity(0.3), // Reduced opacity
+                blurRadius: isUnread ? 6 : 4, // Reduced blur radius
+                offset: isUnread ? const Offset(0, 2) : const Offset(0, 1), // Smaller offset
+                spreadRadius: 0, // Removed spread radius for subtler effect
               ),
-              if (isUnread)
-                BoxShadow(
-                  color: Colors.blue.withOpacity(0.08),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
-                  spreadRadius: 0,
-                ),
             ],
           ),
           child: Material(
@@ -2145,11 +2131,11 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
 
                         const Spacer(),
-                        // Time indicator
+                        // Time indicator with black text when unread
                         Text(
                           _formatDate(announcement['date']),
                           style: TextStyle(
-                            color: Colors.grey.shade600,
+                            color: isUnread ? Colors.grey.shade900 : Colors.grey.shade600, // Changed to darker color for unread
                             fontSize: 12,
                           ),
                         ),

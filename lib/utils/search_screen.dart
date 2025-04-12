@@ -94,7 +94,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
         if (_isSearchFocused) {
           _animationController.forward();
           _isAnimatingSearch = true;
-          Future.delayed(const Duration(milliseconds: 300), () {
+          Future.delayed(const Duration(milliseconds: 500), () { // Increased from 300 to 500
             if (mounted) {
               setState(() {
                 _isAnimatingSearch = false;
@@ -105,10 +105,10 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
       });
     });
     
-    // Initialize animations with better timing curves
+    // Initialize animations with longer durations
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 800), // Increased from 500 to 800
     );
     
     // Create multiple animations with custom curves
@@ -117,11 +117,17 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
     );
     
     _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutQuint),
+      CurvedAnimation(
+        parent: _animationController, 
+        curve: const Interval(0.1, 0.9, curve: Curves.easeOutQuint), // Added interval for longer effect
+      ),
     );
     
     _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
+      CurvedAnimation(
+        parent: _animationController, 
+        curve: const Interval(0.0, 0.8, curve: Curves.easeOutCubic), // Added interval for longer effect
+      ),
     );
     
     _pulseAnimation = TweenSequence<double>([
@@ -129,11 +135,15 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
       TweenSequenceItem(tween: Tween<double>(begin: 1.05, end: 1.0), weight: 1),
     ]).animate(CurvedAnimation(
       parent: _animationController,
-      curve: const Interval(0.0, 0.5, curve: Curves.easeInOut),
+      curve: const Interval(0.0, 0.7, curve: Curves.easeInOut), // Changed from 0.5 to 0.7
     ));
     
-    // Auto-start animation when screen loads
-    _animationController.forward();
+    // Auto-start animation when screen loads with a slight delay for visibility
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        _animationController.forward(from: 0.0); // Reset to ensure full animation
+      }
+    });
   }
 
   void _initializeModules() {
@@ -458,7 +468,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
         backgroundColor: Colors.blue.shade700.withOpacity(0.95),
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
-        centerTitle: true,
+        centerTitle: false, // Changed from true to false to align title to the left
         systemOverlayStyle: SystemUiOverlayStyle.light,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
@@ -510,7 +520,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
 
   Widget _buildSearchHeader() {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 500), // Increased from 300 to 500
       curve: Curves.easeOutQuint,
       decoration: BoxDecoration(
         color: Colors.blue.shade700,
@@ -530,7 +540,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
+            duration: const Duration(milliseconds: 500), // Increased from 300 to 500
             curve: Curves.easeOutQuint,
             height: 50,
             decoration: BoxDecoration(
@@ -551,7 +561,8 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
               onChanged: _onSearchChanged, // Use debounce handler
               autofocus: widget.autoFocusSearch,
               style: const TextStyle(fontSize: 16),
-              textAlign: TextAlign.left, // Align text to the left
+              textAlign: TextAlign.left, // Explicitly set left alignment
+              textAlignVertical: TextAlignVertical.center, // Center vertically
               decoration: InputDecoration(
                 hintText: 'Search modules or features...',
                 hintStyle: TextStyle(
@@ -559,7 +570,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                   fontSize: 16,
                 ),
                 prefixIcon: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
+                  duration: const Duration(milliseconds: 500), // Increased from 300 to 500
                   padding: EdgeInsets.all(_isSearchFocused ? 0 : 2),
                   child: Icon(
                     Icons.search,
@@ -593,7 +604,10 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                     )
                   : null,
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                contentPadding: const EdgeInsets.only(left: 0, top: 15, right: 20, bottom: 15), // Left padding removed, handled by prefixIcon
+                alignLabelWithHint: true,
+                isCollapsed: false,
+                isDense: true,
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(25),
                   borderSide: BorderSide.none,
@@ -622,10 +636,10 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Elastic animation for empty state message
+                // Elastic animation for empty state message - increased duration
                 TweenAnimationBuilder<double>(
                   tween: Tween<double>(begin: 0.8, end: 1.0),
-                  duration: const Duration(milliseconds: 800),
+                  duration: const Duration(milliseconds: 1200), // Increased from 800 to 1200
                   curve: Curves.elasticOut,
                   builder: (context, value, child) {
                     return Transform.scale(
@@ -750,13 +764,13 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
               final moduleIndex = index - 1; // Adjust for header
               final module = _allModules[moduleIndex];
               
-              // Staggered entrance for items
+              // Staggered entrance for items with longer delays
               return AnimatedBuilder(
                 animation: _animationController,
                 builder: (context, child) {
-                  // Safe interval calculations to prevent overflow
-                  final double startInterval = 0.1 + (moduleIndex * 0.05 > 0.6 ? 0.6 : moduleIndex * 0.05);
-                  final double endInterval = 0.7 + (moduleIndex * 0.05 > 0.3 ? 0.3 : moduleIndex * 0.05);
+                  // Safe interval calculations to prevent overflow - adjusted for longer animation
+                  final double startInterval = 0.1 + (moduleIndex * 0.03 > 0.6 ? 0.6 : moduleIndex * 0.03); // Reduced from 0.05 to 0.03
+                  final double endInterval = 0.7 + (moduleIndex * 0.03 > 0.3 ? 0.3 : moduleIndex * 0.03);  // Reduced from 0.05 to 0.03
                   
                   final itemAnimation = CurvedAnimation(
                     parent: _animationController,
