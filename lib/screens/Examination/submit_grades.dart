@@ -52,6 +52,9 @@ class _SubmitGradesScreenState extends State<SubmitGradesScreen> {
         type: FileType.custom,
         allowedExtensions: ['xlsx', 'xls', 'csv'],
         allowMultiple: false,
+        // Apply a blue theme to the file picker
+        dialogTitle: 'Select a file',
+        allowCompression: true,
       );
 
       setState(() {
@@ -242,6 +245,26 @@ class _SubmitGradesScreenState extends State<SubmitGradesScreen> {
     }
   }
 
+  // Add a helper method to create consistent input decorations
+  InputDecoration getInputDecoration(String hint) {
+    return InputDecoration(
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      hintText: hint,
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: Colors.grey.shade400),
+      ),
+      hintStyle: TextStyle(color: Colors.grey.shade500),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureSidebar(
@@ -299,13 +322,7 @@ class _SubmitGradesScreenState extends State<SubmitGradesScreen> {
                     _buildFormField(
                       label: 'Course*',
                       child: DropdownButtonFormField<String>(
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                          hintText: 'Select Course',
-                        ),
+                        decoration: getInputDecoration('Select Course'),
                         items: const [
                           DropdownMenuItem(value: 'CS101', child: Text('CS101 - Introduction to Programming')),
                           DropdownMenuItem(value: 'CS201', child: Text('CS201 - Data Structures')),
@@ -317,19 +334,15 @@ class _SubmitGradesScreenState extends State<SubmitGradesScreen> {
                             _selectedCourse = value;
                           });
                         },
+                        icon: Icon(Icons.arrow_drop_down, color: Colors.blue.shade700),
+                        dropdownColor: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 16),
                     _buildFormField(
                       label: 'Academic Year*',
                       child: DropdownButtonFormField<String>(
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                          hintText: 'Select Academic Year',
-                        ),
+                        decoration: getInputDecoration('Select Academic Year'),
                         items: const [
                           DropdownMenuItem(value: '2022-2023', child: Text('2022-2023')),
                           DropdownMenuItem(value: '2023-2024', child: Text('2023-2024')),
@@ -340,19 +353,15 @@ class _SubmitGradesScreenState extends State<SubmitGradesScreen> {
                             _selectedYear = value;
                           });
                         },
+                        icon: Icon(Icons.arrow_drop_down, color: Colors.blue.shade700),
+                        dropdownColor: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 16),
                     _buildFormField(
                       label: 'Semester*',
                       child: DropdownButtonFormField<String>(
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                          hintText: 'Select Semester',
-                        ),
+                        decoration: getInputDecoration('Select Semester'),
                         items: const [
                           DropdownMenuItem(value: 'Fall', child: Text('Fall')),
                           DropdownMenuItem(value: 'Spring', child: Text('Spring')),
@@ -363,6 +372,8 @@ class _SubmitGradesScreenState extends State<SubmitGradesScreen> {
                             _selectedSemester = value;
                           });
                         },
+                        icon: Icon(Icons.arrow_drop_down, color: Colors.blue.shade700),
+                        dropdownColor: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 16),

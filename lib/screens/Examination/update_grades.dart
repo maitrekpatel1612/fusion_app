@@ -516,7 +516,18 @@ class _UpdateGradesScreenState extends State<UpdateGradesScreen> {
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 16),
                           hintText: 'Select Course',
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: BorderSide(color: Colors.grey.shade400),
+                          ),
+                          hintStyle: TextStyle(color: Colors.grey.shade500),
                         ),
+                        icon: Icon(Icons.arrow_drop_down, color: Colors.blue.shade700),
+                        dropdownColor: Colors.white,
                         items: const [
                           DropdownMenuItem(
                               value: 'CS101',
@@ -549,7 +560,18 @@ class _UpdateGradesScreenState extends State<UpdateGradesScreen> {
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 16),
                           hintText: 'Select Academic Year',
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: BorderSide(color: Colors.grey.shade400),
+                          ),
+                          hintStyle: TextStyle(color: Colors.grey.shade500),
                         ),
+                        icon: Icon(Icons.arrow_drop_down, color: Colors.blue.shade700),
+                        dropdownColor: Colors.white,
                         items: const [
                           DropdownMenuItem(
                               value: '2022-2023', child: Text('2022-2023')),
@@ -576,7 +598,18 @@ class _UpdateGradesScreenState extends State<UpdateGradesScreen> {
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 16),
                           hintText: 'Select Semester',
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: BorderSide(color: Colors.grey.shade400),
+                          ),
+                          hintStyle: TextStyle(color: Colors.grey.shade500),
                         ),
+                        icon: Icon(Icons.arrow_drop_down, color: Colors.blue.shade700),
+                        dropdownColor: Colors.white,
                         items: const [
                           DropdownMenuItem(value: '1', child: Text('Semester 1')),
                           DropdownMenuItem(value: '2', child: Text('Semester 2')),

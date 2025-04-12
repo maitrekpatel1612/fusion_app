@@ -66,6 +66,9 @@ class _ValidateGradesScreenState extends State<ValidateGradesScreen> {
         type: FileType.custom,
         allowedExtensions: ['xlsx', 'xls', 'csv'],
         allowMultiple: false,
+        // Apply a blue theme to the file picker
+        dialogTitle: 'Select a file',
+        allowCompression: true,
       );
 
       setState(() {
@@ -200,6 +203,26 @@ class _ValidateGradesScreenState extends State<ValidateGradesScreen> {
     }
   }
 
+  // Add a global theme function for form field decoration
+  InputDecoration getConsistentInputDecoration(String hintText) {
+    return InputDecoration(
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      hintText: hintText,
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: Colors.grey.shade400),
+      ),
+      hintStyle: TextStyle(color: Colors.grey.shade500),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -257,13 +280,7 @@ class _ValidateGradesScreenState extends State<ValidateGradesScreen> {
                     _buildFormField(
                       label: 'Course*',
                       child: DropdownButtonFormField<String>(
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                          hintText: 'Select Course',
-                        ),
+                        decoration: getConsistentInputDecoration('Select Course'),
                         items: const [
                           DropdownMenuItem(value: 'CS101', child: Text('CS101 - Introduction to Programming')),
                           DropdownMenuItem(value: 'CS201', child: Text('CS201 - Data Structures')),
@@ -281,13 +298,7 @@ class _ValidateGradesScreenState extends State<ValidateGradesScreen> {
                     _buildFormField(
                       label: 'Academic Year*',
                       child: DropdownButtonFormField<String>(
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                          hintText: 'Select Academic Year',
-                        ),
+                        decoration: getConsistentInputDecoration('Select Academic Year'),
                         items: const [
                           DropdownMenuItem(value: '2022-2023', child: Text('2022-2023')),
                           DropdownMenuItem(value: '2023-2024', child: Text('2023-2024')),
@@ -658,6 +669,7 @@ class _ValidateGradesScreenState extends State<ValidateGradesScreen> {
                         child: TextButton(
                           onPressed: _selectFile,
                           style: TextButton.styleFrom(
+                            foregroundColor: Colors.blue.shade700,
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                           ),
                           child: Text(

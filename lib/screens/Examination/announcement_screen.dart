@@ -116,6 +116,9 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
         type: FileType.custom,
         allowedExtensions: ['xlsx', 'xls', 'csv'],
         allowMultiple: false,
+        // Apply a blue theme to the file picker
+        dialogTitle: 'Select Excel File',
+        allowCompression: true,
       );
 
       if (result != null) {
@@ -263,6 +266,24 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
     super.dispose();
   }
 
+  // Add helper method to create consistent input decoration
+  InputDecoration getConsistentInputDecoration(String hintText) {
+    return InputDecoration(
+      border: const OutlineInputBorder(),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      hintText: hintText,
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: Colors.grey.shade400),
+      ),
+      hintStyle: TextStyle(color: Colors.grey.shade500),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureSidebar(
@@ -406,12 +427,9 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                             value: 'Programme 2', child: Text('Programme 2')),
                       ],
                       onChanged: (value) {},
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                        hintText: 'Select Programme',
-                      ),
+                      decoration: getConsistentInputDecoration('Select Programme'),
+                      icon: Icon(Icons.arrow_drop_down, color: Colors.blue.shade700),
+                      dropdownColor: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -425,12 +443,9 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                             value: 'Batch 2', child: Text('Batch 2')),
                       ],
                       onChanged: (value) {},
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                        hintText: 'Select Batch',
-                      ),
+                      decoration: getConsistentInputDecoration('Select Batch'),
+                      icon: Icon(Icons.arrow_drop_down, color: Colors.blue.shade700),
+                      dropdownColor: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -444,24 +459,18 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                             value: 'Department 2', child: Text('Department 2')),
                       ],
                       onChanged: (value) {},
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                        hintText: 'Select Department',
-                      ),
+                      decoration: getConsistentInputDecoration('Select Department'),
+                      icon: Icon(Icons.arrow_drop_down, color: Colors.blue.shade700),
+                      dropdownColor: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 16),
                   _buildFormField(
                     label: 'Description',
-                    child: const TextField(
+                    child: TextField(
                       maxLines: 5,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.all(16),
-                        hintText: 'Write here...',
-                      ),
+                      decoration: getConsistentInputDecoration('Write here...'),
+                      cursorColor: Colors.blue.shade700,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -476,12 +485,21 @@ class _AnnouncementScreenState extends State<AnnouncementScreen> {
                             horizontal: 16, vertical: 16),
                         hintText: 'Upload Files (PDF, JPEG, PNG, JPG)',
                         suffixIcon: IconButton(
-                          icon:
-                              const Icon(Icons.upload_file, color: Colors.blue),
+                          icon: Icon(Icons.upload_file, color: Colors.blue.shade700),
                           onPressed: _showFilePickerOptions,
                         ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                          borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                          borderSide: BorderSide(color: Colors.grey.shade400),
+                        ),
+                        hintStyle: TextStyle(color: Colors.grey.shade500),
                       ),
                       onTap: _showFilePickerOptions,
+                      cursorColor: Colors.blue.shade700,
                     ),
                   ),
                   if (_selectedFiles.isNotEmpty)

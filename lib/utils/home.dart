@@ -394,7 +394,7 @@ class _HomeScreenState extends State<HomeScreen>
           fontWeight: FontWeight.bold,
           fontSize: fontSize,
           color: Colors.blue.shade800,
-          backgroundColor: Colors.yellow.shade100,
+          backgroundColor: Colors.blue.shade50,
         ),
       ));
 
@@ -1118,6 +1118,72 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                     const Divider(),
 
+                    // Status Filter
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.mark_email_read,
+                            size: 18,
+                            color: Colors.grey.shade800,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Status',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey.shade800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Wrap(
+                      spacing: 8.0,
+                      runSpacing: 8.0,
+                      children: _readFilterOptions.map((readOption) {
+                        return ChoiceChip(
+                          label: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                readOption == 'Read'
+                                    ? Icons.visibility
+                                    : readOption == 'Unread'
+                                        ? Icons.visibility_off
+                                        : Icons.remove_red_eye,
+                                size: 16,
+                                color: _selectedReadFilter == readOption
+                                    ? Colors.blue.shade800
+                                    : Colors.grey.shade700,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(readOption),
+                            ],
+                          ),
+                          selected: _selectedReadFilter == readOption,
+                          selectedColor: Colors.blue.shade100,
+                          backgroundColor: Colors.grey.shade100,
+                          labelStyle: TextStyle(
+                            fontWeight: _selectedReadFilter == readOption
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: _selectedReadFilter == readOption
+                                ? Colors.blue.shade800
+                                : Colors.grey.shade800,
+                          ),
+                          onSelected: (selected) {
+                            setModalState(() {
+                              _selectedReadFilter =
+                                  selected ? readOption : 'All';
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+
                     // Module Filter
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -1209,72 +1275,6 @@ class _HomeScreenState extends State<HomeScreen>
                             setModalState(() {
                               _selectedDateFilter =
                                   selected ? dateOption : 'All';
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ),
-
-                    // Read/Unread Filter
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16.0),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.mark_email_read,
-                            size: 18,
-                            color: Colors.grey.shade800,
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            'Status',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey.shade800,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Wrap(
-                      spacing: 8.0,
-                      runSpacing: 8.0,
-                      children: _readFilterOptions.map((readOption) {
-                        return ChoiceChip(
-                          label: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                readOption == 'Read'
-                                    ? Icons.visibility
-                                    : readOption == 'Unread'
-                                        ? Icons.visibility_off
-                                        : Icons.remove_red_eye,
-                                size: 16,
-                                color: _selectedReadFilter == readOption
-                                    ? Colors.blue.shade800
-                                    : Colors.grey.shade700,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(readOption),
-                            ],
-                          ),
-                          selected: _selectedReadFilter == readOption,
-                          selectedColor: Colors.blue.shade100,
-                          backgroundColor: Colors.grey.shade100,
-                          labelStyle: TextStyle(
-                            fontWeight: _selectedReadFilter == readOption
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                            color: _selectedReadFilter == readOption
-                                ? Colors.blue.shade800
-                                : Colors.grey.shade800,
-                          ),
-                          onSelected: (selected) {
-                            setModalState(() {
-                              _selectedReadFilter =
-                                  selected ? readOption : 'All';
                             });
                           },
                         );

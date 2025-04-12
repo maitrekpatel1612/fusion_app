@@ -64,7 +64,27 @@ class _ResultScreenState extends State<ResultScreen> {
       );
     });
   }
-
+  
+  // Create consistent input decoration across the application
+  InputDecoration getConsistentDecoration(String hint) {
+    return InputDecoration(
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      hintText: hint,
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: Colors.grey.shade400),
+      ),
+      hintStyle: TextStyle(color: Colors.grey.shade500),
+    );
+  }
+  
   @override
   Widget build(BuildContext context) {
     return GestureSidebar(
@@ -121,20 +141,15 @@ class _ResultScreenState extends State<ResultScreen> {
                       label: 'Semester*',
                       child: DropdownButtonFormField<String>(
                         value: _selectedSemester,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 16),
-                          hintText: 'Select Semester',
-                        ),
+                        decoration: getConsistentDecoration('Select Semester'),
                         items: _semesterItems,
                         onChanged: (value) {
                           setState(() {
                             _selectedSemester = value;
                           });
                         },
+                        icon: Icon(Icons.arrow_drop_down, color: Colors.blue.shade700),
+                        dropdownColor: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 24),
