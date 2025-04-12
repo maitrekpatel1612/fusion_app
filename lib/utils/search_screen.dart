@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:flutter/services.dart';
+import 'dart:async'; // Import for Timer
 import '../screens/Examination/announcement_screen.dart';
 import '../screens/Examination/submit_grades.dart';
 import '../screens/Examination/verify_grades.dart';
@@ -79,6 +80,8 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
       ),
     ],
   );
+
+  Timer? _debounce; // Timer for debounce
 
   @override
   void initState() {
@@ -373,11 +376,10 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
             (module) => module.name.toLowerCase().contains(query.toLowerCase()))
         .toList();
 
-    // Then search for submodule matches
+    // Then search for submodule matches (excluding descriptions)
     List<SubModuleItem> subModuleMatches = _allSubModules
         .where((subModule) =>
-            subModule.name.toLowerCase().contains(query.toLowerCase()) ||
-            subModule.description.toLowerCase().contains(query.toLowerCase()))
+            subModule.name.toLowerCase().contains(query.toLowerCase()))
         .toList();
 
     // Create a set of parent module names from matching submodules
@@ -409,6 +411,13 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
     });
   }
 
+  void _onSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      _performSearch(query); // Perform search after debounce delay
+    });
+  }
+
   List<SubModuleItem> _getSubModulesForModule(String moduleName) {
     return _allSubModules
         .where((subModule) => subModule.parentModule == moduleName)
@@ -419,10 +428,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
     return _allSubModules
         .where((subModule) =>
             subModule.parentModule == moduleName &&
-            (subModule.name.toLowerCase().contains(query.toLowerCase()) ||
-                subModule.description
-                    .toLowerCase()
-                    .contains(query.toLowerCase())))
+            subModule.name.toLowerCase().contains(query.toLowerCase()))
         .toList();
   }
 
@@ -431,6 +437,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
     _searchController.dispose();
     _searchFocusNode.dispose();
     _animationController.dispose();
+    _debounce?.cancel(); // Cancel debounce timer
     super.dispose();
   }
 
@@ -541,9 +548,10 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
             child: TextField(
               controller: _searchController,
               focusNode: _searchFocusNode,
-              onChanged: _performSearch,
+              onChanged: _onSearchChanged, // Use debounce handler
               autofocus: widget.autoFocusSearch,
               style: const TextStyle(fontSize: 16),
+              textAlign: TextAlign.left, // Align text to the left
               decoration: InputDecoration(
                 hintText: 'Search modules or features...',
                 hintStyle: TextStyle(
@@ -700,59 +708,39 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                 // Enhanced header with total module count
                 return Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'All Modules',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey.shade800,
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: Colors.grey.shade200),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.03),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Text(
-                              '${_allModules.length} total',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                                color: Colors.grey.shade700,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
                       Text(
-                        'Explore all available modules and features',
+                        'All Modules',
                         style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey.shade600,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey.shade800,
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      // Add subtle divider for better separation
-                      Divider(
-                        height: 16,
-                        thickness: 1,
-                        color: Colors.grey.shade100,
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.blue.shade200),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.03),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          '${_allModules.length} Modules',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                            color: Colors.blue.shade700,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -1161,8 +1149,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
   Widget _buildSubModuleItemForSearch(BuildContext context, SubModuleItem subModule, [bool isInSearchResult = false]) {
     final String query = _searchController.text.toLowerCase();
     final bool isMatching = query.isNotEmpty && 
-        (subModule.name.toLowerCase().contains(query) ||
-        subModule.description.toLowerCase().contains(query));
+        (subModule.name.toLowerCase().contains(query));
 
     return Material(
       color: Colors.transparent,
@@ -1459,8 +1446,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                           ),
                           itemBuilder: (context, index) {
                             final bool isMatching = query.isNotEmpty &&
-                                (subModules[index].name.toLowerCase().contains(query) ||
-                                subModules[index].description.toLowerCase().contains(query));
+                                (subModules[index].name.toLowerCase().contains(query));
                             
                             return _buildSubModuleDetailItem(
                               context, 
