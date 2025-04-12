@@ -14,7 +14,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {  // Changed from SingleTickerProviderStateMixin to TickerProviderStateMixin
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late TabController _tabController;
   bool _isSearchVisible = false;
@@ -27,6 +27,10 @@ class _HomeScreenState extends State<HomeScreen>
   String _searchQuery = ''; // Store the search query for highlighting
   bool _isSearching = false; // Flag to track active searching state
   bool _showFilters = false; // Flag to track if filters are shown
+  
+  // Animation controllers
+  late AnimationController _searchAnimationController;
+  late Animation<double> _searchAnimation;
 
   // Focus node for better control over the search field focus
   final FocusNode _searchFocusNode = FocusNode();
@@ -262,6 +266,17 @@ class _HomeScreenState extends State<HomeScreen>
     _selectedReadFilter = 'All'; // Default read filter
 
     _searchController.addListener(_onSearchChanged);
+    
+    // Initialize search animation controller
+    _searchAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    
+    _searchAnimation = CurvedAnimation(
+      parent: _searchAnimationController,
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
@@ -269,6 +284,7 @@ class _HomeScreenState extends State<HomeScreen>
     _tabController.dispose();
     _searchController.dispose();
     _debounce?.cancel();
+    _searchAnimationController.dispose();
     super.dispose();
   }
 
@@ -278,9 +294,11 @@ class _HomeScreenState extends State<HomeScreen>
       if (!_isSearchVisible) {
         _searchController.clear();
         _searchFocusNode.unfocus();
+        _searchAnimationController.reverse();
       } else {
         _searchFocusNode.requestFocus();
         _searchQuery = '';
+        _searchAnimationController.forward();
       }
     });
   }
@@ -610,6 +628,10 @@ class _HomeScreenState extends State<HomeScreen>
       backgroundColor: Colors.transparent,
       isDismissible: true, // Allow dismissing by tapping outside
       enableDrag: true, // Allow dragging to dismiss
+      transitionAnimationController: AnimationController(
+        vsync: Navigator.of(context),
+        duration: const Duration(milliseconds: 400),
+      ),
       builder: (context) {
         return Stack(
           children: [
@@ -629,7 +651,9 @@ class _HomeScreenState extends State<HomeScreen>
               minChildSize: 0.3,
               maxChildSize: 0.9,
               builder: (context, scrollController) {
-                return Container(
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOut,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: const BorderRadius.only(
@@ -719,15 +743,21 @@ class _HomeScreenState extends State<HomeScreen>
                         ),
                       ),
 
-                      // Title
+                      // Title with hero animation for smooth transition
                       Padding(
                         padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-                        child: Text(
-                          notification['title'],
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            height: 1.3,
+                        child: Hero(
+                          tag: 'notification_${notification['title']}',
+                          child: Material(
+                            color: Colors.transparent,
+                            child: Text(
+                              notification['title'],
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                height: 1.3,
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -755,7 +785,6 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                         ),
                       ),
-                      // Removed action buttons container with Close button
                     ],
                   ),
                 );
@@ -776,8 +805,12 @@ class _HomeScreenState extends State<HomeScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      isDismissible: true, // Allow dismissing by tapping outside
-      enableDrag: true, // Allow dragging to dismiss
+      isDismissible: true,
+      enableDrag: true,
+      transitionAnimationController: AnimationController(
+        vsync: Navigator.of(context),
+        duration: const Duration(milliseconds: 400),
+      ),
       builder: (context) {
         return Stack(
           children: [
@@ -797,7 +830,9 @@ class _HomeScreenState extends State<HomeScreen>
               minChildSize: 0.3,
               maxChildSize: 0.9,
               builder: (context, scrollController) {
-                return Container(
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOut,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: const BorderRadius.only(
@@ -873,15 +908,21 @@ class _HomeScreenState extends State<HomeScreen>
                         ),
                       ),
 
-                      // Title
+                      // Title with hero animation
                       Padding(
                         padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-                        child: Text(
-                          announcement['title'],
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            height: 1.3,
+                        child: Hero(
+                          tag: 'announcement_${announcement['title']}',
+                          child: Material(
+                            color: Colors.transparent,
+                            child: Text(
+                              announcement['title'],
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                height: 1.3,
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -905,67 +946,91 @@ class _HomeScreenState extends State<HomeScreen>
                                 ),
                               ),
 
-                              // Attachment section
+                              // Attachment section with subtle animation
                               if (hasAttachment) ...[
                                 const SizedBox(height: 24),
-                                Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.shade50,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border:
-                                        Border.all(color: Colors.blue.shade100),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        _getFileIcon(attachmentName),
-                                        color: Colors.blue.shade700,
-                                        size: 32,
+                                TweenAnimationBuilder(
+                                  duration: const Duration(milliseconds: 500),
+                                  tween: Tween<double>(begin: 0.0, end: 1.0),
+                                  builder: (context, double value, child) {
+                                    return Opacity(
+                                      opacity: value,
+                                      child: Transform(
+                                        transform: Matrix4.translationValues(0, 20 * (1 - value), 0),
+                                        child: child,
                                       ),
-                                      const SizedBox(width: 16),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              attachmentName,
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w500,
-                                                color: Colors.blue.shade900,
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                            Text(
-                                              'Tap to download',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.blue.shade700,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      IconButton(
-                                        icon: Icon(
-                                          Icons.download,
+                                    );
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.shade50,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border:
+                                          Border.all(color: Colors.blue.shade100),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          _getFileIcon(attachmentName),
                                           color: Colors.blue.shade700,
+                                          size: 32,
                                         ),
-                                        onPressed: () {
-                                          // Download logic
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                  'Downloading $attachmentName...'),
-                                              duration:
-                                                  const Duration(seconds: 2),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ],
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                attachmentName,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.blue.shade900,
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                              Text(
+                                                'Tap to download',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.blue.shade700,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: Icon(
+                                            Icons.download,
+                                            color: Colors.blue.shade700,
+                                          ),
+                                          onPressed: () {
+                                            // Download logic with animation feedback
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Row(
+                                                  children: [
+                                                    const SizedBox(
+                                                      width: 20,
+                                                      height: 20,
+                                                      child: CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 16),
+                                                    Text('Downloading $attachmentName...'),
+                                                  ],
+                                                ),
+                                                duration: const Duration(seconds: 2),
+                                                behavior: SnackBarBehavior.floating,
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ],
@@ -974,7 +1039,6 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                         ),
                       ),
-                      // Removed bottom actions container with Close button
                     ],
                   ),
                 );
@@ -991,6 +1055,10 @@ class _HomeScreenState extends State<HomeScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      transitionAnimationController: AnimationController(
+        vsync: Navigator.of(context),
+        duration: const Duration(milliseconds: 400),
+      ),
       builder: (context) {
         return StatefulBuilder(builder: (context, setModalState) {
           return Container(
@@ -1213,37 +1281,46 @@ class _HomeScreenState extends State<HomeScreen>
                       }).toList(),
                     ),
 
-                    // Apply Button
+                    // Apply Button with animation
                     const SizedBox(height: 24.0),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50.0,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            // Set _showFilters to true when filters are applied
-                            _showFilters = (_selectedModule != 'All' ||
-                                _selectedDateFilter != 'All' ||
-                                _selectedReadFilter != 'All');
-                          });
-                          Navigator.pop(context);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade700,
-                          foregroundColor: Colors.white,
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                    TweenAnimationBuilder<double>(
+                      duration: const Duration(milliseconds: 300),
+                      tween: Tween<double>(begin: 0.95, end: 1.0),
+                      builder: (context, value, child) {
+                        return Transform.scale(
+                          scale: value,
+                          child: SizedBox(
+                            width: double.infinity,
+                            height: 50.0,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  // Set _showFilters to true when filters are applied
+                                  _showFilters = (_selectedModule != 'All' ||
+                                      _selectedDateFilter != 'All' ||
+                                      _selectedReadFilter != 'All');
+                                });
+                                Navigator.pop(context);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue.shade700,
+                                foregroundColor: Colors.white,
+                                elevation: 2,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text(
+                                'Apply Filters',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                        child: const Text(
-                          'Apply Filters',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 8.0),
                   ],
@@ -1272,62 +1349,71 @@ class _HomeScreenState extends State<HomeScreen>
         backgroundColor: Colors.grey.shade100,
         appBar: AppBar(
           title: _isSearchVisible
-              ? Container(
-                  width: double.infinity,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: TextField(
-                    controller: _searchController,
-                    focusNode: _searchFocusNode,
-                    decoration: InputDecoration(
-                      hintText: 'Search...',
-                      hintStyle:
-                          TextStyle(color: Colors.white.withOpacity(0.7)),
-                      prefixIcon: const Icon(Icons.search, color: Colors.white),
-                      suffixIcon: _searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.close,
-                                  color: Colors.white, size: 20),
-                              onPressed: () {
-                                setState(() {
-                                  _searchController.clear();
-                                  _searchQuery = '';
-                                });
-                              },
-                            )
-                          : null,
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 8, horizontal: 16),
+              ? SizeTransition(
+                  sizeFactor: _searchAnimation,
+                  axis: Axis.horizontal,
+                  axisAlignment: -1,
+                  child: Container(
+                    width: double.infinity,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                    style: const TextStyle(color: Colors.white),
-                    onChanged: (value) {
-                      _onSearchChanged();
-                    },
-                    onSubmitted: (value) {
-                      if (value.isNotEmpty) {
-                        // Add search to history
-                        _addToSearchHistory(value);
-                        // Close keyboard and clear focus
-                        _searchFocusNode.unfocus();
-                      }
-                    },
-                    onTap: () {
-                      // Show search history when search field is tapped
-                      setState(() {
-                        _isSearchFocused = true;
-                      });
-                    },
+                    child: TextField(
+                      controller: _searchController,
+                      focusNode: _searchFocusNode,
+                      decoration: InputDecoration(
+                        hintText: 'Search...',
+                        hintStyle:
+                            TextStyle(color: Colors.white.withOpacity(0.7)),
+                        prefixIcon: const Icon(Icons.search, color: Colors.white),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.close,
+                                    color: Colors.white, size: 20),
+                                onPressed: () {
+                                  setState(() {
+                                    _searchController.clear();
+                                    _searchQuery = '';
+                                  });
+                                },
+                              )
+                            : null,
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                            vertical: 8, horizontal: 16),
+                      ),
+                      style: const TextStyle(color: Colors.white),
+                      onChanged: (value) {
+                        _onSearchChanged();
+                      },
+                      onSubmitted: (value) {
+                        if (value.isNotEmpty) {
+                          // Add search to history
+                          _addToSearchHistory(value);
+                          // Close keyboard and clear focus
+                          _searchFocusNode.unfocus();
+                        }
+                      },
+                      onTap: () {
+                        // Show search history when search field is tapped
+                        setState(() {
+                          _isSearchFocused = true;
+                        });
+                      },
+                    ),
                   ),
                 )
-              : const Text(
-                  'Home',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+              : AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: const Text(
+                    'Home',
+                    key: ValueKey('title'),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
           backgroundColor: Colors.blue.shade700,
@@ -1342,10 +1428,17 @@ class _HomeScreenState extends State<HomeScreen>
             },
           ),
           actions: [
-            IconButton(
-              icon: Icon(_isSearchVisible ? Icons.close : Icons.search,
-                  color: Colors.white),
-              onPressed: _toggleSearch,
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return ScaleTransition(scale: animation, child: child);
+              },
+              child: IconButton(
+                key: ValueKey<bool>(_isSearchVisible),
+                icon: Icon(_isSearchVisible ? Icons.close : Icons.search,
+                    color: Colors.white),
+                onPressed: _toggleSearch,
+              ),
             ),
             // Filter icon with visual indicator when filters are active
             Stack(
@@ -1359,15 +1452,27 @@ class _HomeScreenState extends State<HomeScreen>
                   Positioned(
                     right: 10,
                     top: 10,
-                    child: Container(
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: Colors.amber,
-                        shape: BoxShape.circle,
-                        border:
-                            Border.all(color: Colors.blue.shade700, width: 1.5),
-                      ),
+                    child: TweenAnimationBuilder<double>(
+                      duration: const Duration(milliseconds: 300),
+                      tween: Tween<double>(begin: 0.0, end: 1.0),
+                      builder: (context, value, child) {
+                        return Opacity(
+                          opacity: value,
+                          child: Transform.scale(
+                            scale: value,
+                            child: Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: Colors.amber,
+                                shape: BoxShape.circle,
+                                border:
+                                    Border.all(color: Colors.blue.shade700, width: 1.5),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
               ],
@@ -1401,8 +1506,13 @@ class _HomeScreenState extends State<HomeScreen>
         body: Column(
           children: [
             // Display the horizontal search history banner when there is search history
-            if (_isSearchVisible && _searchHistory.isNotEmpty)
-              _buildRecentSearchesBanner(),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              child: _isSearchVisible && _searchHistory.isNotEmpty
+                ? _buildRecentSearchesBanner()
+                : const SizedBox.shrink(),
+            ),
             
             // Main tab content
             Expanded(
@@ -1681,39 +1791,61 @@ class _HomeScreenState extends State<HomeScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.notifications_off,
-              size: 64,
-              color: Colors.grey.shade400,
+            TweenAnimationBuilder<double>(
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.elasticOut,
+              tween: Tween<double>(begin: 0.5, end: 1.0),
+              builder: (context, value, child) {
+                return Transform.scale(
+                  scale: value,
+                  child: Icon(
+                    Icons.notifications_off,
+                    size: 64,
+                    color: Colors.grey.shade400,
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 16),
-            Text(
-              'No notifications found',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey.shade600,
-              ),
+            TweenAnimationBuilder<double>(
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeInOut,
+              tween: Tween<double>(begin: 0.0, end: 1.0),
+              builder: (context, value, child) {
+                return Opacity(
+                  opacity: value,
+                  child: Text(
+                    'No notifications found',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),
       );
     }
 
+    // Replace AnimatedList with a standard ListView.builder for better stability
     return ListView.builder(
       itemCount: filteredNotifications.length,
       padding: const EdgeInsets.all(16.0),
+      physics: const BouncingScrollPhysics(), // Keep elastic scroll physics
       itemBuilder: (context, index) {
         final notification = filteredNotifications[index];
         final isUnread = notification['isUnread'] as bool;
         final isSystemNotification = notification['type'] == 'system';
 
-        return Container(
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
-            // Dull white background for read cards, bright white for unread
             color: isUnread ? Colors.white : Colors.grey.shade50,
             borderRadius: BorderRadius.circular(20),
-            // Modified shadows using consistent blue colors
             boxShadow: [
               BoxShadow(
                 color: isUnread 
@@ -1723,7 +1855,6 @@ class _HomeScreenState extends State<HomeScreen>
                 offset: isUnread ? const Offset(0, 4) : const Offset(0, 2),
                 spreadRadius: isUnread ? 1 : 0,
               ),
-              // Second shadow layer only for unread items
               if (isUnread)
                 BoxShadow(
                   color: Colors.blue.withOpacity(0.08),
@@ -1741,19 +1872,18 @@ class _HomeScreenState extends State<HomeScreen>
                 setState(() {
                   notification['isUnread'] = false;
                 });
-
                 // Show notification details in bottom sheet banner
                 _showNotificationDetails(notification);
               },
               child: Padding(
-                padding: const EdgeInsets.all(16.0), // Consistent padding with announcements
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Header with module tag and time
                     Row(
                       children: [
-                        // System or Module tag pill with blue color (changed from indigo)
+                        // System or Module tag pill with blue color
                         Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 10, vertical: 5),
@@ -1800,7 +1930,8 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                         ),
                         if (isUnread)
-                          Container(
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
                             margin: const EdgeInsets.only(left: 6),
                             width: 8,
                             height: 8,
@@ -1814,13 +1945,19 @@ class _HomeScreenState extends State<HomeScreen>
 
                     const SizedBox(height: 12),
 
-                    // Title with one line and ellipsis - using isRead to control color
-                    _highlightSearchText(
-                      notification['title'],
-                      maxLines: 1,
-                      isBold: true,
-                      fontSize: 16,
-                      isRead: !isUnread, // Pass isRead flag to control title color
+                    // Title with one line and ellipsis - using hero for animation
+                    Hero(
+                      tag: 'notification_${notification['title']}',
+                      child: Material(
+                        color: Colors.transparent,
+                        child: _highlightSearchText(
+                          notification['title'],
+                          maxLines: 1,
+                          isBold: true,
+                          fontSize: 16,
+                          isRead: !isUnread,
+                        ),
+                      ),
                     ),
 
                     const SizedBox(height: 10),
@@ -1860,52 +1997,71 @@ class _HomeScreenState extends State<HomeScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.campaign_outlined,
-              size: 64,
-              color: Colors.grey.shade400,
+            TweenAnimationBuilder<double>(
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.elasticOut,
+              tween: Tween<double>(begin: 0.5, end: 1.0),
+              builder: (context, value, child) {
+                return Transform.scale(
+                  scale: value,
+                  child: Icon(
+                    Icons.campaign_outlined,
+                    size: 64,
+                    color: Colors.grey.shade400,
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 16),
-            Text(
-              'No announcements found',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey.shade600,
-              ),
+            TweenAnimationBuilder<double>(
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeInOut,
+              tween: Tween<double>(begin: 0.0, end: 1.0),
+              builder: (context, value, child) {
+                return Opacity(
+                  opacity: value,
+                  child: Text(
+                    'No announcements found',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),
       );
     }
 
+    // Replace AnimatedList with a standard ListView.builder here as well
     return ListView.builder(
       itemCount: filteredAnnouncements.length,
       padding: const EdgeInsets.all(16.0),
+      physics: const BouncingScrollPhysics(), // Keep elastic scroll physics
       itemBuilder: (context, index) {
         final announcement = filteredAnnouncements[index];
         final isUnread = announcement['isUnread'] as bool;
         final hasAttachment = announcement['hasAttachment'] as bool? ?? false;
         final title = announcement['title'] as String;
 
-        return Container(
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
-            // Dull white background for read cards, bright white for unread
             color: isUnread ? Colors.white : Colors.grey.shade50,
             borderRadius: BorderRadius.circular(20),
-            // Modified shadows to have zero on top, minimal on sides, decreased on bottom
             boxShadow: [
               BoxShadow(
                 color: isUnread 
                   ? Colors.blue.withOpacity(0.25)
                   : Colors.grey.shade300.withOpacity(0.5),
                 blurRadius: isUnread ? 10 : 6,
-                // Setting y offset positive but x offset to 0 to have shadow only on bottom
                 offset: isUnread ? const Offset(0, 4) : const Offset(0, 2),
-                // Reduced spread radius to decrease the shadow spread
                 spreadRadius: isUnread ? 1 : 0,
               ),
-              // Second shadow layer only for unread items, focused on bottom
               if (isUnread)
                 BoxShadow(
                   color: Colors.blue.withOpacity(0.08),
@@ -1920,7 +2076,7 @@ class _HomeScreenState extends State<HomeScreen>
             child: InkWell(
               borderRadius: BorderRadius.circular(20),
               onTap: () {
-                // Mark as read
+                // Mark as read with animation
                 setState(() {
                   announcement['isUnread'] = false;
                 });
@@ -1968,15 +2124,24 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                         ),
 
-                        // Attachment indicator
+                        // Attachment indicator with subtle animation
                         if (hasAttachment)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 8.0),
-                            child: Icon(
-                              Icons.attach_file,
-                              size: 16,
-                              color: Colors.grey.shade600,
-                            ),
+                          TweenAnimationBuilder<double>(
+                            duration: const Duration(milliseconds: 300),
+                            tween: Tween<double>(begin: 0.0, end: 1.0),
+                            builder: (context, value, child) {
+                              return Padding(
+                                padding: const EdgeInsets.only(left: 8.0),
+                                child: Opacity(
+                                  opacity: value,
+                                  child: Icon(
+                                    Icons.attach_file,
+                                    size: 16,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              );
+                            },
                           ),
 
                         const Spacer(),
@@ -1989,7 +2154,8 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                         ),
                         if (isUnread)
-                          Container(
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
                             margin: const EdgeInsets.only(left: 6),
                             width: 8,
                             height: 8,
@@ -2003,13 +2169,19 @@ class _HomeScreenState extends State<HomeScreen>
 
                     const SizedBox(height: 12),
 
-                    // Title with one line and ellipsis - now with grey color for read cards
-                    _highlightSearchText(
-                      title,
-                      maxLines: 1,
-                      isBold: true,
-                      fontSize: 15,
-                      isRead: !isUnread, // Pass isRead flag to control title color
+                    // Title with one line and ellipsis using hero for animation
+                    Hero(
+                      tag: 'announcement_${announcement['title']}',
+                      child: Material(
+                        color: Colors.transparent,
+                        child: _highlightSearchText(
+                          title,
+                          maxLines: 1,
+                          isBold: true,
+                          fontSize: 15,
+                          isRead: !isUnread,
+                        ),
+                      ),
                     ),
 
                     const SizedBox(height: 10),
@@ -2353,13 +2525,14 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  // Custom widget to show recent searches in a horizontal banner
+  // Custom widget to show recent searches in a horizontal banner with animation
   Widget _buildRecentSearchesBanner() {
     if (_searchHistory.isEmpty) {
       return Container(); // Return empty container if no search history
     }
     
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       decoration: BoxDecoration(
@@ -2378,64 +2551,88 @@ class _HomeScreenState extends State<HomeScreen>
           children: [
             // Search history chips
             for (int i = 0; i < _searchHistory.length; i++)
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: ActionChip(
-                  label: Text(
-                    _searchHistory[i],
-                    style: TextStyle(
-                      color: Colors.blue.shade800,
-                      fontSize: 13,
+              TweenAnimationBuilder<double>(
+                duration: Duration(milliseconds: 200 + (i * 50)),
+                tween: Tween<double>(begin: 0.0, end: 1.0),
+                builder: (context, value, child) {
+                  return Opacity(
+                    opacity: value,
+                    child: Transform(
+                      transform: Matrix4.translationValues(20 * (1 - value), 0, 0),
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ActionChip(
+                          label: Text(
+                            _searchHistory[i],
+                            style: TextStyle(
+                              color: Colors.blue.shade800,
+                              fontSize: 13,
+                            ),
+                          ),
+                          backgroundColor: Colors.blue.shade50,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            side: BorderSide(
+                              color: Colors.blue.shade200,
+                              width: 0.5,
+                            ),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                          visualDensity: VisualDensity.compact,
+                          onPressed: () {
+                            setState(() {
+                              _searchController.text = _searchHistory[i];
+                              _searchQuery = _searchHistory[i];
+                              _searchFocusNode.unfocus();
+                            });
+                          },
+                        ),
+                      ),
                     ),
-                  ),
-                  backgroundColor: Colors.blue.shade50,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(
-                      color: Colors.blue.shade200,
-                      width: 0.5,
-                    ),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                  visualDensity: VisualDensity.compact,
-                  onPressed: () {
-                    setState(() {
-                      _searchController.text = _searchHistory[i];
-                      _searchQuery = _searchHistory[i];
-                      _searchFocusNode.unfocus();
-                    });
-                  },
-                ),
+                  );
+                },
               ),
               
             // Clear all button at the end with dustbin icon and "Clear recent" text
-            ActionChip(
-              avatar: Icon(
-                Icons.delete,
-                size: 16,
-                color: Colors.red.shade600,
-              ),
-              label: Text(
-                'Clear recent',
-                style: TextStyle(
-                  color: Colors.red.shade600,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              backgroundColor: Colors.red.shade50,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(
-                  color: Colors.red.shade200,
-                  width: 0.5,
-                ),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              onPressed: () {
-                setState(() {
-                  _searchHistory.clear();
-                });
+            TweenAnimationBuilder<double>(
+              duration: const Duration(milliseconds: 600),
+              tween: Tween<double>(begin: 0.0, end: 1.0),
+              builder: (context, value, child) {
+                return Opacity(
+                  opacity: value,
+                  child: Transform(
+                    transform: Matrix4.translationValues(20 * (1 - value), 0, 0),
+                    child: ActionChip(
+                      avatar: Icon(
+                        Icons.delete,
+                        size: 16,
+                        color: Colors.red.shade600,
+                      ),
+                      label: Text(
+                        'Clear recent',
+                        style: TextStyle(
+                          color: Colors.red.shade600,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      backgroundColor: Colors.red.shade50,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(
+                          color: Colors.red.shade200,
+                          width: 0.5,
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      onPressed: () {
+                        setState(() {
+                          _searchHistory.clear();
+                        });
+                      },
+                    ),
+                  ),
+                );
               },
             ),
           ],
