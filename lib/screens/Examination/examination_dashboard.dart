@@ -11,7 +11,7 @@ import '../../utils/gesture_sidebar.dart';
 import '../../utils/profile.dart'; // Import the new ProfileScreen
 // Import the new SearchScreen
 import '../../utils/home.dart'; // Import HomeScreen for navigation
-import '../../main.dart'; // Import ExitConfirmationWrapper
+import '../../utils/bottom_bar.dart'; // Import the BottomBar widget
 
 class ExaminationDashboard extends StatefulWidget {
   const ExaminationDashboard({super.key});
@@ -113,20 +113,24 @@ class _ExaminationDashboardState extends State<ExaminationDashboard> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      onPopInvoked: (didPop) {
-        if (didPop) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  const ExitConfirmationWrapper(child: HomeScreen()),
-            ),
-            (route) => false,
-          );
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (!didPop) {
+          // Navigate to home screen
+          await Future.delayed(Duration.zero); // Add small delay to prevent navigation conflicts
+          if (context.mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HomeScreen(),
+              ),
+            );
+          }
         }
       },
       child: GestureSidebar(
         scaffoldKey: _scaffoldKey,
+        edgeWidthFactor: 1.0, // Allow swipe from anywhere on screen
         child: Scaffold(
           key: _scaffoldKey,
           appBar: AppBar(
@@ -150,8 +154,7 @@ class _ExaminationDashboardState extends State<ExaminationDashboard> {
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          const ExitConfirmationWrapper(child: HomeScreen()),
+                      builder: (context) => const HomeScreen(),
                     ),
                     (route) => false,
                   );
@@ -178,6 +181,7 @@ class _ExaminationDashboardState extends State<ExaminationDashboard> {
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: ListView(
+                    physics: const BouncingScrollPhysics(), // Added smooth scrolling
                     children: [
                       _buildDashboardCard(
                         icon: Icons.campaign,
@@ -185,42 +189,42 @@ class _ExaminationDashboardState extends State<ExaminationDashboard> {
                         color: Colors.orange,
                         onTap: () => _handleNavigation(2),
                       ),
-                      const SizedBox(height: 16.0),
+                      const SizedBox(height: 16.0), // Consistent spacing between cards
                       _buildDashboardCard(
                         icon: Icons.grade,
                         label: 'Submit Grades',
                         color: Colors.green,
                         onTap: () => _handleNavigation(3),
                       ),
-                      const SizedBox(height: 16.0),
+                      const SizedBox(height: 16.0), // Consistent spacing between cards
                       _buildDashboardCard(
                         icon: Icons.check_circle,
                         label: 'Verify Grades',
                         color: Colors.purple,
                         onTap: () => _handleNavigation(4),
                       ),
-                      const SizedBox(height: 16.0),
+                      const SizedBox(height: 16.0), // Consistent spacing between cards
                       _buildDashboardCard(
                         icon: Icons.calendar_today,
                         label: 'Generate Transcript',
                         color: Colors.blue,
                         onTap: () => _handleNavigation(5),
                       ),
-                      const SizedBox(height: 16.0),
+                      const SizedBox(height: 16.0), // Consistent spacing between cards
                       _buildDashboardCard(
                         icon: Icons.verified_user,
                         label: 'Validate Grades',
                         color: Colors.red,
                         onTap: () => _handleNavigation(6),
                       ),
-                      const SizedBox(height: 16.0),
+                      const SizedBox(height: 16.0), // Consistent spacing between cards
                       _buildDashboardCard(
                         icon: Icons.update,
                         label: 'Update Grades',
                         color: Colors.teal,
                         onTap: () => _handleNavigation(7),
                       ),
-                      const SizedBox(height: 16.0),
+                      const SizedBox(height: 16.0), // Consistent spacing between cards
                       _buildDashboardCard(
                         icon: Icons.assessment,
                         label: 'Result',
@@ -233,6 +237,7 @@ class _ExaminationDashboardState extends State<ExaminationDashboard> {
               ),
             ],
           ),
+          bottomNavigationBar: const BottomBar(), // Added BottomBar widget
         ),
       ),
     );
@@ -261,14 +266,7 @@ class _ExaminationDashboardState extends State<ExaminationDashboard> {
               cardColor.withOpacity(0.7),
             ],
           ),
-          boxShadow: [
-            BoxShadow(
-              color: cardColor.withOpacity(0.4),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
-              spreadRadius: 2,
-            ),
-          ],
+          // Removed boxShadow property to eliminate shadow
         ),
         child: Stack(
           children: [
@@ -290,16 +288,10 @@ class _ExaminationDashboardState extends State<ExaminationDashboard> {
                   // Icon in circle
                   Container(
                     padding: const EdgeInsets.all(12.0),
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: cardColor.withOpacity(0.2), // Changed to use cardColor instead of color
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
+                      // Removed boxShadow property to eliminate shadow
                     ),
                     child: Icon(
                       icon,
