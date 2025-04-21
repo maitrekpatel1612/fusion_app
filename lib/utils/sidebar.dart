@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:fusion/screens/Complaint%20Management/complaint_form.dart';
+import 'package:fusion/screens/Complaint%20Management/complaint_history.dart';
+import 'package:fusion/screens/Complaint%20Management/feedback.dart';
+import 'package:fusion/screens/Complaint%20Management/resolved_complaints.dart';
+import 'package:fusion/screens/Complaint%20Management/unresolved_complaints.dart';
+import '../screens/Complaint Management/complaint_dashboard.dart';
 import '../services/user_preferences_service.dart';
 import '../screens/Examination/examination_dashboard.dart';
-import '../screens/Examination/submit_grades.dart';
-import '../screens/Examination/update_grades.dart';
 import '../screens/Examination/result.dart';
 import 'home.dart'; // Import home screen
 
@@ -30,6 +34,7 @@ class _SidebarState extends State<Sidebar> {
   bool _isLibraryManagementExpanded = false;
   bool _isHostelManagementExpanded = false;
   bool _isAlumniNetworkExpanded = false;
+  bool _isComplaintManagementExpanded = false;
   bool _showPositionOptions = false;
   String _currentPosition = 'Faculty Member';
   final List<String> _positions = [
@@ -812,6 +817,53 @@ class _SidebarState extends State<Sidebar> {
                       title: 'Mentorship Programs',
                       index: 55),
                 ],
+
+                // Complaint management Module
+                _buildModuleWithToggle(
+                  icon: Icons.group,
+                  title: 'Complaint Management',
+                  isExpanded: _isComplaintManagementExpanded,
+                  onToggle: () {
+                    setState(() {
+                      _isComplaintManagementExpanded = !_isComplaintManagementExpanded;
+                    });
+                  },
+                  onTap: () {
+                    // First pop any open dashboard if one exists (optional: check if Navigator.canPop)
+                    Navigator.popUntil(context, (route) => route.isFirst);
+
+                    // Then push the new dashboard
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ComplaintDashboard(),
+                      ),
+                    );
+                  },
+                ),
+                if (_isComplaintManagementExpanded) ...[
+                  _buildSubNavItem(context,
+                      icon: Icons.people_outline,
+                      title: 'Lodge a Complaint',
+                      index: 57),
+                  _buildSubNavItem(context,
+                      icon: Icons.event_note,
+                      title: 'View Feedback',
+                      index: 58),
+                  _buildSubNavItem(context,
+                      icon: Icons.forum,
+                      title: 'Complaint History',
+                      index: 59),
+                  _buildSubNavItem(context,
+                      icon: Icons.volunteer_activism,
+                      title: 'Resolved Complaints',
+                      index: 60),
+                  _buildSubNavItem(context,
+                      icon: Icons.volunteer_activism,
+                      title: 'Unresolved Complaints',
+                      index: 61),
+                ],
+
               ],
             ),
           ),
@@ -953,16 +1005,34 @@ class _SidebarState extends State<Sidebar> {
         // Close the drawer
         Navigator.pop(context);
         // Navigate to Submit Grades screen if index matches
-        if (index == 3) {
+        if (index == 57) {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const SubmitGradesScreen()),
+            MaterialPageRoute(builder: (context) => const AddComplaintPage()),
           );
-        } else if (index == 7) {
+        } else if (index == 58) {
           // Navigate to Update Grades screen
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const UpdateGradesScreen()),
+            MaterialPageRoute(builder: (context) => const ViewFeedback()),
+          );
+        } else if (index == 59) {
+          // Navigate to Update Grades screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ViewHistory()),
+          );
+        } else if (index == 60) {
+          // Navigate to Update Grades screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ViewResolved()),
+          );
+        } else if (index == 61) {
+          // Navigate to Update Grades screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ViewUnresolved()),
           );
         }
         // Notify parent about selection
