@@ -3,7 +3,8 @@ import 'package:fl_chart/fl_chart.dart';
 import '../../utils/sidebar.dart';
 import '../../utils/gesture_sidebar.dart';
 import '../../utils/bottom_bar.dart'; // Import the new bottom bar component
-import '../../utils/home.dart'; // Import home screen for notification navigation
+// Import home screen for notification navigation
+import 'examination_dashboard.dart'; // Import examination dashboard
 
 class UpdateGradesScreen extends StatefulWidget {
   const UpdateGradesScreen({Key? key}) : super(key: key);
@@ -460,26 +461,27 @@ class _UpdateGradesScreenState extends State<UpdateGradesScreen> {
         appBar: AppBar(
           title: const Text(
             'Update Grades',
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
           elevation: 0,
-          backgroundColor: Colors.blue.shade700,
-          foregroundColor: Colors.white,
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
           leading: IconButton(
-            icon: const Icon(Icons.menu, color: Colors.white),
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
             onPressed: () {
-              _scaffoldKey.currentState!.openDrawer();
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ExaminationDashboard(),
+                ),
+              );
             },
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.notifications, color: Colors.white),
+              icon: const Icon(Icons.menu, color: Colors.black),
               onPressed: () {
-                // Navigate to home screen when notification bell is clicked
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
-                );
+                _scaffoldKey.currentState!.openDrawer();
               },
             ),
           ],
@@ -514,7 +516,18 @@ class _UpdateGradesScreenState extends State<UpdateGradesScreen> {
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 16),
                           hintText: 'Select Course',
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: BorderSide(color: Colors.grey.shade400),
+                          ),
+                          hintStyle: TextStyle(color: Colors.grey.shade500),
                         ),
+                        icon: Icon(Icons.arrow_drop_down, color: Colors.blue.shade700),
+                        dropdownColor: Colors.white,
                         items: const [
                           DropdownMenuItem(
                               value: 'CS101',
@@ -547,7 +560,18 @@ class _UpdateGradesScreenState extends State<UpdateGradesScreen> {
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 16),
                           hintText: 'Select Academic Year',
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: BorderSide(color: Colors.grey.shade400),
+                          ),
+                          hintStyle: TextStyle(color: Colors.grey.shade500),
                         ),
+                        icon: Icon(Icons.arrow_drop_down, color: Colors.blue.shade700),
+                        dropdownColor: Colors.white,
                         items: const [
                           DropdownMenuItem(
                               value: '2022-2023', child: Text('2022-2023')),
@@ -574,7 +598,18 @@ class _UpdateGradesScreenState extends State<UpdateGradesScreen> {
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 16),
                           hintText: 'Select Semester',
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: BorderSide(color: Colors.grey.shade400),
+                          ),
+                          hintStyle: TextStyle(color: Colors.grey.shade500),
                         ),
+                        icon: Icon(Icons.arrow_drop_down, color: Colors.blue.shade700),
+                        dropdownColor: Colors.white,
                         items: const [
                           DropdownMenuItem(value: '1', child: Text('Semester 1')),
                           DropdownMenuItem(value: '2', child: Text('Semester 2')),

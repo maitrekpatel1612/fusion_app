@@ -64,11 +64,32 @@ class _ResultScreenState extends State<ResultScreen> {
       );
     });
   }
-
+  
+  // Create consistent input decoration across the application
+  InputDecoration getConsistentDecoration(String hint) {
+    return InputDecoration(
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      hintText: hint,
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: Colors.grey.shade400),
+      ),
+      hintStyle: TextStyle(color: Colors.grey.shade500),
+    );
+  }
+  
   @override
   Widget build(BuildContext context) {
     return GestureSidebar(
       scaffoldKey: _scaffoldKey,
+      edgeWidthFactor: 1.0, // Allow swipe from anywhere on screen
       child: Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
@@ -80,7 +101,7 @@ class _ResultScreenState extends State<ResultScreen> {
           backgroundColor: Colors.white,
           foregroundColor: Colors.black,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.blue),
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
             onPressed: () {
               Navigator.pushReplacement(
                 context,
@@ -92,7 +113,7 @@ class _ResultScreenState extends State<ResultScreen> {
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.menu, color: Colors.blue),
+              icon: const Icon(Icons.menu, color: Colors.black),
               onPressed: () {
                 _scaffoldKey.currentState!.openDrawer();
               },
@@ -121,20 +142,15 @@ class _ResultScreenState extends State<ResultScreen> {
                       label: 'Semester*',
                       child: DropdownButtonFormField<String>(
                         value: _selectedSemester,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 16),
-                          hintText: 'Select Semester',
-                        ),
+                        decoration: getConsistentDecoration('Select Semester'),
                         items: _semesterItems,
                         onChanged: (value) {
                           setState(() {
                             _selectedSemester = value;
                           });
                         },
+                        icon: Icon(Icons.arrow_drop_down, color: Colors.blue.shade700),
+                        dropdownColor: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -210,18 +226,18 @@ class _ResultScreenState extends State<ResultScreen> {
 
 class ResultPreviewScreen extends StatelessWidget {
   final String semester;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); // Add scaffold key
 
-  const ResultPreviewScreen({Key? key, required this.semester})
-      : super(key: key);
+  // Update constructor to include key
+  ResultPreviewScreen({Key? key, required this.semester}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
-
     return GestureSidebar(
-      scaffoldKey: scaffoldKey,
+      scaffoldKey: _scaffoldKey,
+      edgeWidthFactor: 1.0, // Allow swipe from anywhere on screen
       child: Scaffold(
-        key: scaffoldKey,
+        key: _scaffoldKey,
         appBar: AppBar(
           title: Text(
             '$semester Results',
