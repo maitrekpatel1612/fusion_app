@@ -1,7 +1,32 @@
 import 'package:flutter/material.dart';
+import '../../utils/sidebar.dart' as sidebar;
+import '../../Applicant.dart';
+import '../../PCC_Admin.dart';
+import '../../Director.dart';
 
-class ActorsPage extends StatelessWidget {
+class ActorsPage extends StatefulWidget {
   const ActorsPage({super.key});
+
+  @override
+  _ActorsPageState createState() => _ActorsPageState();
+}
+
+class _ActorsPageState extends State<ActorsPage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  void _handleNavigation(int index) {
+    switch (index) {
+      case 0:
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const ApplicantDashboard()));
+        break;
+      case 1:
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const PCCAdminDashboard()));
+        break;
+      case 2:
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const DirectorDashboard()));
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,14 +37,24 @@ class ActorsPage extends StatelessWidget {
     ];
 
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: const Text('Patent Management'),
         backgroundColor: Colors.blue[800],
-        leading: const Icon(Icons.menu),
-        actions: const [Padding(padding: EdgeInsets.only(right: 16), child: Icon(Icons.notifications))],
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+        ),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 16),
+            child: Icon(Icons.notifications),
+          ),
+        ],
       ),
+      drawer: sidebar.Sidebar(onItemSelected: _handleNavigation),
       body: ListView.builder(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         itemCount: dashboardOptions.length,
         itemBuilder: (context, index) {
           final option = dashboardOptions[index];
@@ -29,7 +64,7 @@ class ActorsPage extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(colors: [Colors.blue[700]!, Colors.blue[400]!]),
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: [
+                boxShadow: const [
                   BoxShadow(
                     color: Colors.black26,
                     blurRadius: 4,
@@ -52,23 +87,11 @@ class ActorsPage extends StatelessWidget {
                   style: const TextStyle(color: Colors.white70, fontSize: 14),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white),
-                onTap: () {
-                  // Handle tap if needed
-                },
+                onTap: () => _handleNavigation(index),
               ),
             ),
           );
         },
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        selectedItemColor: Colors.blue[800],
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: 'Courses'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
       ),
     );
   }
