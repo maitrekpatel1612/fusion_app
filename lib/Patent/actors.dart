@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../utils/sidebar.dart' as sidebar;
-import '../../Applicant.dart';
-import '../../PCC_Admin.dart';
-import '../../Director.dart';
+import '../../Patent/Applicant.dart';
+import '../../Patent/PCC_Admin.dart';
+import '../../Patent/Director.dart';
 
 class ActorsPage extends StatefulWidget {
   const ActorsPage({super.key});

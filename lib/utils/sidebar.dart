@@ -5,7 +5,7 @@ import '../screens/Examination/submit_grades.dart';
 import '../screens/Examination/update_grades.dart';
 import '../screens/Examination/result.dart';
 import 'home.dart';
-import '../actors.dart'; // Import home screen
+import '../Patent/actors.dart'; // Import home screen
 
 class Sidebar extends StatefulWidget {
   final Function(int)? onItemSelected;
