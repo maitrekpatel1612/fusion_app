@@ -175,7 +175,7 @@ class _VerifyGradesScreenState extends State<VerifyGradesScreen> {
           backgroundColor: Colors.white,
           foregroundColor: Colors.black,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.blue),
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
             onPressed: () {
               Navigator.pushReplacement(
                 context,
@@ -187,7 +187,7 @@ class _VerifyGradesScreenState extends State<VerifyGradesScreen> {
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.menu, color: Colors.blue),
+              icon: const Icon(Icons.menu, color: Colors.black),
               onPressed: () {
                 _scaffoldKey.currentState!.openDrawer();
               },

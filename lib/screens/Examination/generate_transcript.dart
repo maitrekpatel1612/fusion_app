@@ -52,6 +52,9 @@ class _GenerateTranscriptScreenState extends State<GenerateTranscriptScreen> {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['xlsx', 'xls', 'csv'],
+        // Apply a blue theme to the file picker
+        dialogTitle: 'Select Excel File',
+        allowCompression: true,
       );
 
       if (result != null) {
@@ -95,6 +98,26 @@ class _GenerateTranscriptScreenState extends State<GenerateTranscriptScreen> {
     });
   }
 
+  // Add helper method to create consistent input decoration
+  InputDecoration getConsistentInputDecoration(String hintText) {
+    return InputDecoration(
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      hintText: hintText,
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: Colors.grey.shade400),
+      ),
+      hintStyle: TextStyle(color: Colors.grey.shade500),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureSidebar(
@@ -110,7 +133,7 @@ class _GenerateTranscriptScreenState extends State<GenerateTranscriptScreen> {
           backgroundColor: Colors.white,
           foregroundColor: Colors.black,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.blue),
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
             onPressed: () {
               Navigator.pushReplacement(
                 context,
@@ -122,7 +145,7 @@ class _GenerateTranscriptScreenState extends State<GenerateTranscriptScreen> {
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.menu, color: Colors.blue),
+              icon: const Icon(Icons.menu, color: Colors.black),
               onPressed: () {
                 _scaffoldKey.currentState!.openDrawer();
               },
@@ -151,20 +174,15 @@ class _GenerateTranscriptScreenState extends State<GenerateTranscriptScreen> {
                       label: 'Course*',
                       child: DropdownButtonFormField<String>(
                         value: _selectedCourse,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 16),
-                          hintText: 'Select Course',
-                        ),
+                        decoration: getConsistentInputDecoration('Select Course'),
                         items: _courseItems,
                         onChanged: (value) {
                           setState(() {
                             _selectedCourse = value;
                           });
                         },
+                        icon: Icon(Icons.arrow_drop_down, color: Colors.blue.shade700),
+                        dropdownColor: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -172,20 +190,15 @@ class _GenerateTranscriptScreenState extends State<GenerateTranscriptScreen> {
                       label: 'Academic Year*',
                       child: DropdownButtonFormField<String>(
                         value: _selectedYear,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 16),
-                          hintText: 'Select Academic Year',
-                        ),
+                        decoration: getConsistentInputDecoration('Select Academic Year'),
                         items: _yearItems,
                         onChanged: (value) {
                           setState(() {
                             _selectedYear = value;
                           });
                         },
+                        icon: Icon(Icons.arrow_drop_down, color: Colors.blue.shade700),
+                        dropdownColor: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 16),

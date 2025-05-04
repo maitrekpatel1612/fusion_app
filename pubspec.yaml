@@ -37,8 +37,12 @@ dependencies:
   http: ^1.1.2
   fl_chart: ^0.65.0
   shared_preferences: ^2.5.3
+<<<<<<< HEAD
+=======
+  google_fonts: ^6.2.1  # Upgrade google_fonts to a compatible version
+  url_launcher: ^6.1.5
+>>>>>>> upstream/main
   intl: ^0.18.1  # Added for date formatting
-  video_player: ^2.8.1  # Added for playing splash video
 
 dev_dependencies:
   flutter_test:
@@ -74,19 +78,19 @@ flutter_launcher_icons:
 # Flutter native splash configuration
 flutter_native_splash:
   color: "#4361EE"
-  image: "assets/image.png"
+  image: "assets/logo.png" # Simple logo only
   branding: null
   color_dark: "#4361EE"
-  image_dark: "assets/image.png"
+  image_dark: "assets/logo.png"
   branding_dark: null
   fullscreen: true
   android_12:
-    image: "assets/image.png"
+    image: "assets/logo.png"
     icon_background_color: "#4361EE"
-    image_dark: "assets/image.png"
+    image_dark: "assets/logo.png"
     icon_background_color_dark: "#4361EE"
   web: true
-  preserve_splash: true
+  preserve_splash: false # Change to false to remove it as soon as possible
 
 # The following section is specific to Flutter packages.
 flutter:
@@ -101,6 +105,7 @@ flutter:
     - assets/profile.jpg
     - assets/logo.png
     - assets/image.png
+
     - assets/Splash_video.mp4
 
   # An image asset can refer to one or more resolution-specific "variants", see

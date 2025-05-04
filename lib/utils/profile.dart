@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import '../services/user_preferences_service.dart';
 import 'bottom_bar.dart'; // Import the bottom bar
+import 'sidebar.dart';
+import 'gesture_sidebar.dart'; // Import the gesture sidebar
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -12,17 +14,24 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); // Add scaffold key
   // User information (this would typically come from a state management solution or API)
   final Map<String, dynamic> _userData = {
     'name': 'Maitrek Patel',
     'email': 'maitrek.patel@example.com',
     'phone': '+91 9876543210',
-    'position': 'Faculty Member', // Default value, will be updated from preferences
+    'position':
+        'Faculty Member', // Default value, will be updated from preferences
     'department': 'Computer Science',
     'employeeId': 'FAC-2023-001',
     'dateJoined': 'August 15, 2018',
     'address': '123 University Campus, Academic Block B, Gujarat, India',
-    'skills': ['Flutter Development', 'Machine Learning', 'Database Systems', 'Algorithm Design'],
+    'skills': [
+      'Flutter Development',
+      'Machine Learning',
+      'Database Systems',
+      'Algorithm Design'
+    ],
     'education': [
       {
         'degree': 'Ph.D in Computer Science',
@@ -88,16 +97,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _departmentController = TextEditingController();
   final TextEditingController _employeeIdController = TextEditingController();
   final TextEditingController _dateJoinedController = TextEditingController();
-  
+
   // For adding new skills
   final TextEditingController _newSkillController = TextEditingController();
-  
+
   // For editing education entries
   List<Map<String, TextEditingController>> _educationControllers = [];
-  
+
   // For editing publication entries
   List<Map<String, TextEditingController>> _publicationControllers = [];
-  
+
   String? _profileImagePath;
   final ImagePicker _picker = ImagePicker();
 
@@ -125,24 +134,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _departmentController.text = _userData['department'];
     _employeeIdController.text = _userData['employeeId'];
     _dateJoinedController.text = _userData['dateJoined'];
-    
+
     // Initialize education controllers
     _educationControllers = List.generate(
       _userData['education'].length,
       (index) => {
-        'degree': TextEditingController(text: _userData['education'][index]['degree']),
-        'institution': TextEditingController(text: _userData['education'][index]['institution']),
-        'year': TextEditingController(text: _userData['education'][index]['year']),
+        'degree': TextEditingController(
+            text: _userData['education'][index]['degree']),
+        'institution': TextEditingController(
+            text: _userData['education'][index]['institution']),
+        'year':
+            TextEditingController(text: _userData['education'][index]['year']),
       },
     );
-    
+
     // Initialize publication controllers
     _publicationControllers = List.generate(
       _userData['publications'].length,
       (index) => {
-        'title': TextEditingController(text: _userData['publications'][index]['title']),
-        'journal': TextEditingController(text: _userData['publications'][index]['journal']),
-        'year': TextEditingController(text: _userData['publications'][index]['year']),
+        'title': TextEditingController(
+            text: _userData['publications'][index]['title']),
+        'journal': TextEditingController(
+            text: _userData['publications'][index]['journal']),
+        'year': TextEditingController(
+            text: _userData['publications'][index]['year']),
       },
     );
   }
@@ -158,21 +173,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _employeeIdController.dispose();
     _dateJoinedController.dispose();
     _newSkillController.dispose();
-    
+
     // Dispose education controllers
     for (var controllers in _educationControllers) {
       controllers.forEach((key, controller) {
         controller.dispose();
       });
     }
-    
+
     // Dispose publication controllers
     for (var controllers in _publicationControllers) {
       controllers.forEach((key, controller) {
         controller.dispose();
       });
     }
-    
+
     super.dispose();
   }
 
@@ -199,7 +214,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (_isEditMode) {
         // Save the changes
         _saveChanges();
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Profile updated successfully!'),
@@ -210,7 +225,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _isEditMode = !_isEditMode;
     });
   }
-  
+
   void _saveChanges() {
     // Save basic info
     _userData['name'] = _nameController.text;
@@ -220,19 +235,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _userData['department'] = _departmentController.text;
     _userData['employeeId'] = _employeeIdController.text;
     _userData['dateJoined'] = _dateJoinedController.text;
-    
+
     // Save education info
     for (int i = 0; i < _educationControllers.length; i++) {
-      _userData['education'][i]['degree'] = _educationControllers[i]['degree']!.text;
-      _userData['education'][i]['institution'] = _educationControllers[i]['institution']!.text;
-      _userData['education'][i]['year'] = _educationControllers[i]['year']!.text;
+      _userData['education'][i]['degree'] =
+          _educationControllers[i]['degree']!.text;
+      _userData['education'][i]['institution'] =
+          _educationControllers[i]['institution']!.text;
+      _userData['education'][i]['year'] =
+          _educationControllers[i]['year']!.text;
     }
-    
+
     // Save publication info
     for (int i = 0; i < _publicationControllers.length; i++) {
-      _userData['publications'][i]['title'] = _publicationControllers[i]['title']!.text;
-      _userData['publications'][i]['journal'] = _publicationControllers[i]['journal']!.text;
-      _userData['publications'][i]['year'] = _publicationControllers[i]['year']!.text;
+      _userData['publications'][i]['title'] =
+          _publicationControllers[i]['title']!.text;
+      _userData['publications'][i]['journal'] =
+          _publicationControllers[i]['journal']!.text;
+      _userData['publications'][i]['year'] =
+          _publicationControllers[i]['year']!.text;
     }
   }
 
@@ -250,7 +271,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _userData['skills'].removeAt(index);
     });
   }
-  
+
   void _addEducation() {
     setState(() {
       _userData['education'].add({
@@ -258,7 +279,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         'institution': 'Institution Name',
         'year': DateTime.now().year.toString(),
       });
-      
+
       _educationControllers.add({
         'degree': TextEditingController(text: 'New Degree'),
         'institution': TextEditingController(text: 'Institution Name'),
@@ -266,11 +287,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
     });
   }
-  
+
   void _removeEducation(int index) {
     setState(() {
       _userData['education'].removeAt(index);
-      
+
       // Dispose controllers before removing them
       _educationControllers[index].forEach((key, controller) {
         controller.dispose();
@@ -278,7 +299,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _educationControllers.removeAt(index);
     });
   }
-  
+
   void _addPublication() {
     setState(() {
       _userData['publications'].add({
@@ -286,7 +307,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         'journal': 'Journal Name',
         'year': DateTime.now().year.toString(),
       });
-      
+
       _publicationControllers.add({
         'title': TextEditingController(text: 'New Publication'),
         'journal': TextEditingController(text: 'Journal Name'),
@@ -294,11 +315,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
     });
   }
-  
+
   void _removePublication(int index) {
     setState(() {
       _userData['publications'].removeAt(index);
-      
+
       // Dispose controllers before removing them
       _publicationControllers[index].forEach((key, controller) {
         controller.dispose();
@@ -329,10 +350,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _userData['position'] = position;
       _showPositionOptions = false;
     });
-    
+
     // Save the position to preferences for persistence across app
     await UserPreferencesService.savePosition(position);
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Position changed to $position'),
@@ -344,364 +365,379 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final Color primaryColor = _positionColors[_userData['position']] ?? Colors.blue;
-    
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Profile',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-        elevation: 0,
-        backgroundColor: primaryColor,
-        actions: [
-          IconButton(
-            icon: Icon(_isEditMode ? Icons.save : Icons.edit, color: Colors.white),
-            onPressed: _toggleEditMode,
-            tooltip: _isEditMode ? 'Save changes' : 'Edit profile',
+    final Color primaryColor =
+        _positionColors[_userData['position']] ?? Colors.blue;
+
+    return GestureSidebar(
+      scaffoldKey: _scaffoldKey,
+      edgeWidthFactor: 1.0, // Allow swipe from anywhere on screen
+      child: Scaffold(
+        key: _scaffoldKey, // Use the scaffold key
+        appBar: AppBar(
+          title: const Text(
+            'Profile',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Profile header with gradient
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: primaryColor,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(40),
-                  bottomRight: Radius.circular(40),
+          elevation: 0,
+          backgroundColor: primaryColor,
+          iconTheme: const IconThemeData(color: Colors.white), // Set menu icon to white
+        ),
+        drawer: const Sidebar(), // Add Sidebar as a drawer
+        body: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Profile header with gradient
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: primaryColor,
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(40),
+                    bottomRight: Radius.circular(40),
+                  ),
                 ),
-              ),
-              child: Column(
-                children: [
-                  const SizedBox(height: 20),
-                  // Profile image
-                  GestureDetector(
-                    onTap: _isEditMode ? _pickImage : null,
-                    child: Stack(
-                      children: [
-                        Container(
-                          width: 120,
-                          height: 120,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 4),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 10,
-                                offset: const Offset(0, 5),
-                              ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(60),
-                            child: _profileImagePath != null
-                                ? Image.file(
-                                    File(_profileImagePath!),
-                                    fit: BoxFit.cover,
-                                  )
-                                : Image.asset(
-                                    'assets/profile.jpg',
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return CircleAvatar(
-                                        backgroundColor: Colors.grey.shade200,
-                                        child: Icon(
-                                          _positionIcons[_userData['position']] ?? Icons.person,
-                                          size: 60,
-                                          color: primaryColor,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                          ),
-                        ),
-                        if (_isEditMode)
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    blurRadius: 5,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Icon(
-                                Icons.camera_alt,
-                                color: primaryColor,
-                                size: 20,
-                              ),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    // Profile image
+                    GestureDetector(
+                      onTap: _isEditMode ? _pickImage : null,
+                      child: Stack(
+                        children: [
+                          Container(
+                            width: 120,
+                            height: 120,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 4),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 5),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(60),
+                              child: _profileImagePath != null
+                                  ? Image.file(
+                                      File(_profileImagePath!),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Image.asset(
+                                      'assets/profile.jpg',
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return CircleAvatar(
+                                          backgroundColor: Colors.grey.shade200,
+                                          child: Icon(
+                                            _positionIcons[
+                                                    _userData['position']] ??
+                                                Icons.person,
+                                            size: 60,
+                                            color: primaryColor,
+                                          ),
+                                        );
+                                      },
+                                    ),
                             ),
                           ),
-                      ],
+                          if (_isEditMode)
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.2),
+                                      blurRadius: 5,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  Icons.camera_alt,
+                                  color: primaryColor,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  // Name field
-                  _isEditMode
-                      ? Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 30),
-                          child: TextField(
-                            controller: _nameController,
+                    const SizedBox(height: 20),
+                    // Name field
+                    _isEditMode
+                        ? Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 30),
+                            child: TextField(
+                              controller: _nameController,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                              decoration: InputDecoration(
+                                hintText: 'Enter your name',
+                                hintStyle: TextStyle(
+                                    color: Colors.white.withOpacity(0.7)),
+                                border: InputBorder.none,
+                                enabledBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Colors.white.withOpacity(0.5)),
+                                ),
+                                focusedBorder: const UnderlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.white),
+                                ),
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          )
+                        : Text(
+                            _userData['name'],
                             style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
-                            decoration: InputDecoration(
-                              hintText: 'Enter your name',
-                              hintStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
-                              border: InputBorder.none,
-                              enabledBorder: UnderlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
-                              ),
-                              focusedBorder: const UnderlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white),
-                              ),
-                            ),
-                            textAlign: TextAlign.center,
                           ),
-                        )
-                      : Text(
-                          _userData['name'],
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                    const SizedBox(height: 10),
+                    // Position badge with dropdown option
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _showPositionOptions = !_showPositionOptions;
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                              color: Colors.white.withOpacity(0.5), width: 1),
                         ),
-                  const SizedBox(height: 10),
-                  // Position badge with dropdown option
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _showPositionOptions = !_showPositionOptions;
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withOpacity(0.5), width: 1),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            _positionIcons[_userData['position']] ?? Icons.person,
-                            color: Colors.white,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            _userData['position'],
-                            style: const TextStyle(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _positionIcons[_userData['position']] ??
+                                  Icons.person,
                               color: Colors.white,
-                              fontWeight: FontWeight.w500,
+                              size: 16,
                             ),
-                          ),
-                          const SizedBox(width: 4),
-                          Icon(
-                            _showPositionOptions ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                            color: Colors.white,
-                            size: 16,
-                          ),
-                        ],
+                            const SizedBox(width: 8),
+                            Text(
+                              _userData['position'],
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(
+                              _showPositionOptions
+                                  ? Icons.keyboard_arrow_up
+                                  : Icons.keyboard_arrow_down,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 15),
-                  
-                  // Position options dropdown
-                  AnimatedCrossFade(
-                    duration: const Duration(milliseconds: 300),
-                    crossFadeState: _showPositionOptions
-                        ? CrossFadeState.showFirst
-                        : CrossFadeState.showSecond,
-                    firstChild: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.swap_horiz,
-                                size: 14,
-                                color: Colors.white,
-                              ),
-                              SizedBox(width: 6),
-                              Text(
-                                'SWITCH POSITION',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 11,
+                    const SizedBox(height: 15),
+
+                    // Position options dropdown
+                    AnimatedCrossFade(
+                      duration: const Duration(milliseconds: 300),
+                      crossFadeState: _showPositionOptions
+                          ? CrossFadeState.showFirst
+                          : CrossFadeState.showSecond,
+                      firstChild: Container(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.swap_horiz,
+                                  size: 14,
                                   color: Colors.white,
-                                  letterSpacing: 1.2,
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          ...List.generate(_positions.length, (index) {
-                            final position = _positions[index];
-                            final isSelected = position == _userData['position'];
-                            return GestureDetector(
-                              onTap: () {
-                                _changePosition(position);
-                              },
-                              child: Container(
-                                margin: const EdgeInsets.only(bottom: 8),
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? Colors.white.withOpacity(0.3)
-                                      : Colors.white.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? Colors.white
-                                        : Colors.white.withOpacity(0.2),
+                                SizedBox(width: 6),
+                                Text(
+                                  'SWITCH POSITION',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
+                                    color: Colors.white,
+                                    letterSpacing: 1.2,
                                   ),
                                 ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: isSelected
-                                            ? Colors.white.withOpacity(0.3)
-                                            : Colors.white.withOpacity(0.1),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Icon(
-                                        _positionIcons[position],
-                                        size: 20,
-                                        color: Colors.white,
-                                      ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            ...List.generate(_positions.length, (index) {
+                              final position = _positions[index];
+                              final isSelected =
+                                  position == _userData['position'];
+                              return GestureDetector(
+                                onTap: () {
+                                  _changePosition(position);
+                                },
+                                child: Container(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? Colors.white.withOpacity(0.3)
+                                        : Colors.white.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Colors.white.withOpacity(0.2),
                                     ),
-                                    const SizedBox(width: 12),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          position,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 14,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        Text(
-                                          _getPositionDescription(position),
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: Colors.white.withOpacity(0.8),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const Spacer(),
-                                    if (isSelected)
+                                  ),
+                                  child: Row(
+                                    children: [
                                       Container(
-                                        padding: const EdgeInsets.all(4),
-                                        decoration: const BoxDecoration(
-                                          color: Colors.white,
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: isSelected
+                                              ? Colors.white.withOpacity(0.3)
+                                              : Colors.white.withOpacity(0.1),
                                           shape: BoxShape.circle,
                                         ),
                                         child: Icon(
-                                          Icons.check,
-                                          size: 12,
-                                          color: primaryColor,
+                                          _positionIcons[position],
+                                          size: 20,
+                                          color: Colors.white,
                                         ),
                                       ),
-                                  ],
+                                      const SizedBox(width: 12),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            position,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 14,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          Text(
+                                            _getPositionDescription(position),
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color:
+                                                  Colors.white.withOpacity(0.8),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const Spacer(),
+                                      if (isSelected)
+                                        Container(
+                                          padding: const EdgeInsets.all(4),
+                                          decoration: const BoxDecoration(
+                                            color: Colors.white,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            Icons.check,
+                                            size: 12,
+                                            color: primaryColor,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            );
-                          }),
-                        ],
+                              );
+                            }),
+                          ],
+                        ),
                       ),
+                      secondChild: const SizedBox(height: 0),
                     ),
-                    secondChild: const SizedBox(height: 0),
-                  ),
-                  
-                  const SizedBox(height: 15),
-                ],
+
+                    const SizedBox(height: 15),
+                  ],
+                ),
               ),
-            ),
-            
-            // Contact Info Section
-            _buildSectionHeader(
-              primaryColor, 
-              'Contact Information',
-              null,
-              null,
-            ),
-            _buildContactInfoCard(primaryColor),
-            
-            // Professional Details Section
-            _buildSectionHeader(
-              primaryColor, 
-              'Professional Details',
-              null,
-              null,
-            ),
-            _buildProfessionalCard(primaryColor),
-            
-            // Education Section
-            _buildSectionHeader(
-              primaryColor, 
-              'Education',
-              _isEditMode ? Icons.add : null,
-              _isEditMode ? () => _addEducation() : null,
-            ),
-            ..._buildEducationCards(primaryColor),
-            
-            // Publications Section
-            _buildSectionHeader(
-              primaryColor, 
-              'Publications',
-              _isEditMode ? Icons.add : null,
-              _isEditMode ? () => _addPublication() : null,
-            ),
-            ..._buildPublicationCards(primaryColor),
-            
-            // Skills Section
-            _buildSectionHeader(
-              primaryColor, 
-              'Skills',
-              null,
-              null,
-            ),
-            _buildSkillsCard(primaryColor),
-            
-            const SizedBox(height: 30),
-          ],
+
+              // Contact Info Section
+              _buildSectionHeader(
+                primaryColor,
+                'Contact Information',
+                null,
+                null,
+              ),
+              _buildContactInfoCard(primaryColor),
+
+              // Professional Details Section
+              _buildSectionHeader(
+                primaryColor,
+                'Professional Details',
+                null,
+                null,
+              ),
+              _buildProfessionalCard(primaryColor),
+
+              // Education Section
+              _buildSectionHeader(
+                primaryColor,
+                'Education',
+                _isEditMode ? Icons.add : null,
+                _isEditMode ? () => _addEducation() : null,
+              ),
+              ..._buildEducationCards(primaryColor),
+
+              // Publications Section
+              _buildSectionHeader(
+                primaryColor,
+                'Publications',
+                _isEditMode ? Icons.add : null,
+                _isEditMode ? () => _addPublication() : null,
+              ),
+              ..._buildPublicationCards(primaryColor),
+
+              // Skills Section
+              _buildSectionHeader(
+                primaryColor,
+                'Skills',
+                null,
+                null,
+              ),
+              _buildSkillsCard(primaryColor),
+
+              const SizedBox(height: 30),
+            ],
+          ),
         ),
+        // Add bottom bar with correct index
+        bottomNavigationBar: const BottomBar(currentIndex: 3),
       ),
-      // Add bottom bar with correct index
-      bottomNavigationBar: const BottomBar(currentIndex: 3),
     );
   }
 
   Widget _buildSectionHeader(
-    Color primaryColor, 
-    String title, 
+    Color primaryColor,
+    String title,
     IconData? actionIcon,
     VoidCallback? onActionPressed,
   ) {
@@ -796,7 +832,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     int maxLines = 1,
   }) {
     return Row(
-      crossAxisAlignment: maxLines > 1 ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+      crossAxisAlignment:
+          maxLines > 1 ? CrossAxisAlignment.start : CrossAxisAlignment.center,
       children: [
         Container(
           padding: const EdgeInsets.all(10),
@@ -892,7 +929,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
-  
+
   Widget _buildProfessionalField({
     required IconData icon,
     required String title,
@@ -960,7 +997,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Card(
             elevation: 5,
             shadowColor: Colors.black.withOpacity(0.2),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
             child: Padding(
               padding: const EdgeInsets.all(15),
               child: Column(
@@ -984,7 +1022,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 decoration: const InputDecoration(
                                   hintText: 'Enter degree',
                                   isDense: true,
-                                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                                  contentPadding:
+                                      EdgeInsets.symmetric(vertical: 8),
                                   border: InputBorder.none,
                                 ),
                                 style: const TextStyle(
@@ -1015,11 +1054,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         _isEditMode
                             ? TextField(
-                                controller: _educationControllers[i]['institution'],
+                                controller: _educationControllers[i]
+                                    ['institution'],
                                 decoration: const InputDecoration(
                                   hintText: 'Enter institution',
                                   isDense: true,
-                                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                                  contentPadding:
+                                      EdgeInsets.symmetric(vertical: 8),
                                   border: InputBorder.none,
                                 ),
                                 style: const TextStyle(
@@ -1049,12 +1090,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Expanded(
                               child: _isEditMode
                                   ? TextField(
-                                      controller: _educationControllers[i]['year'],
+                                      controller: _educationControllers[i]
+                                          ['year'],
                                       keyboardType: TextInputType.number,
                                       decoration: const InputDecoration(
                                         hintText: 'Enter year',
                                         isDense: true,
-                                        contentPadding: EdgeInsets.symmetric(vertical: 8),
+                                        contentPadding:
+                                            EdgeInsets.symmetric(vertical: 8),
                                         border: InputBorder.none,
                                       ),
                                       style: TextStyle(
@@ -1094,7 +1137,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Card(
             elevation: 5,
             shadowColor: Colors.black.withOpacity(0.2),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
             child: Padding(
               padding: const EdgeInsets.all(15),
               child: Column(
@@ -1118,7 +1162,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 decoration: const InputDecoration(
                                   hintText: 'Enter publication title',
                                   isDense: true,
-                                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                                  contentPadding:
+                                      EdgeInsets.symmetric(vertical: 8),
                                   border: InputBorder.none,
                                 ),
                                 style: const TextStyle(
@@ -1149,11 +1194,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         _isEditMode
                             ? TextField(
-                                controller: _publicationControllers[i]['journal'],
+                                controller: _publicationControllers[i]
+                                    ['journal'],
                                 decoration: const InputDecoration(
                                   hintText: 'Enter journal name',
                                   isDense: true,
-                                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                                  contentPadding:
+                                      EdgeInsets.symmetric(vertical: 8),
                                   border: InputBorder.none,
                                 ),
                                 style: const TextStyle(
@@ -1183,12 +1230,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Expanded(
                               child: _isEditMode
                                   ? TextField(
-                                      controller: _publicationControllers[i]['year'],
+                                      controller: _publicationControllers[i]
+                                          ['year'],
                                       keyboardType: TextInputType.number,
                                       decoration: const InputDecoration(
                                         hintText: 'Enter year',
                                         isDense: true,
-                                        contentPadding: EdgeInsets.symmetric(vertical: 8),
+                                        contentPadding:
+                                            EdgeInsets.symmetric(vertical: 8),
                                         border: InputBorder.none,
                                       ),
                                       style: TextStyle(
@@ -1240,7 +1289,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         decoration: const InputDecoration(
                           hintText: 'Add a new skill',
                           border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          contentPadding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         ),
                       ),
                     ),
@@ -1249,7 +1299,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       onPressed: _addSkill,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryColor,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
                       ),
                       child: const Text('Add'),
                     ),
@@ -1266,7 +1317,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   return Stack(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 15, vertical: 10),
                         decoration: BoxDecoration(
                           color: primaryColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(20),
@@ -1294,7 +1346,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               decoration: BoxDecoration(
                                 color: Colors.red.shade400,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 1),
+                                border:
+                                    Border.all(color: Colors.white, width: 1),
                               ),
                               child: const Icon(
                                 Icons.close,
