@@ -5,10 +5,8 @@ import '../screens/Examination/submit_grades.dart';
 import '../screens/Examination/update_grades.dart';
 import '../screens/Examination/result.dart';
 import 'home.dart'; // Import home screen
-import '../Patent/actors.dart'; // Import actors screen
 import 'help.dart'; // Import help screen
 import 'profile.dart'; // Import profile screen
-
 
 class Sidebar extends StatefulWidget {
   final Function(int)? onItemSelected;
@@ -509,65 +507,21 @@ class _SidebarState extends State<Sidebar> with TickerProviderStateMixin {
             // Divider between header and modules
             const Divider(height: 1),
 
-// Divider between Home and modules
-const Divider(height: 1),
-
-// Scrollable modules section
-Expanded(
-  child: ListView(
-    padding: EdgeInsets.zero,
-    children: [
-      // Examination Module
-      _buildModuleWithToggle(
-        icon: Icons.school,
-        title: 'Examination',
-        isExpanded: _isExaminationExpanded,
-        onToggle: () {
-          setState(() {
-            _isExaminationExpanded = !_isExaminationExpanded;
-          });
-        },
-        onTap: () {
-          // Navigate to Examination Dashboard when clicking on the module directly
-          Navigator.pop(context);
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const ExaminationDashboard(),
-            ),
-          );
-        },
-      ),
-      if (_isExaminationExpanded) ...[
-        _buildSubNavItem(context,
-            icon: Icons.campaign, title: 'Announcement', index: 2),
-        _buildSubNavItem(context,
-            icon: Icons.grade, title: 'Submit Grades', index: 3),
-        _buildSubNavItem(context,
-            icon: Icons.check_circle,
-            title: 'Verify Grades',
-            index: 4),
-        _buildSubNavItem(context,
-            icon: Icons.calendar_today,
-            title: 'Generate Transcript',
-            index: 5),
-        _buildSubNavItem(context,
-            icon: Icons.verified_user,
-            title: 'Validate Grades',
-            index: 6),
-        _buildSubNavItem(context,
-            icon: Icons.update, title: 'Update Grades', index: 7),
-        _buildSubNavItem(context,
-            icon: Icons.assessment, title: 'Result', index: 8),
-        ListTile(
-          leading: const Icon(Icons.assessment),
-          title: const Text('View Results'),
-        ),
-      ],
-    ],
-  ),
-),
-
+            // Scrollable modules section
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  // Examination Module
+                  _buildModuleWithToggle(
+                    icon: Icons.school,
+                    title: 'Examination',
+                    isExpanded: _isExaminationExpanded,
+                    onToggle: () {
+                      setState(() {
+                        _isExaminationExpanded = !_isExaminationExpanded;
+                      });
+                    },
                     onTap: () {
                       // Navigate to Examination Dashboard when clicking on the module directly
                       Navigator.pop(context);
@@ -680,39 +634,29 @@ Expanded(
                         icon: Icons.assignment, title: 'Syllabus', index: 21),
                   ],
 
-// Patent Module
-_buildModuleWithToggle(
-  icon: Icons.brightness_7,
-  title: 'Patent',
-  isExpanded: _isPatentExpanded,
-  onToggle: () {
-    setState(() {
-      _isPatentExpanded = !_isPatentExpanded;
-    });
-  },
-  onTap: () {
-    // Navigate to ActorsPage when clicking on the main Patent option
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-          builder: (context) => const ActorsPage()),
-    );
-  },
-),
-
-if (_isPatentExpanded) ...[
-  _buildSubNavItem(context,
-      icon: Icons.add_circle_outline,
-      title: 'File Patent',
-      index: 22),
-  _buildSubNavItem(context,
-      icon: Icons.category,
-      title: 'Patent Portfolio',
-      index: 23),
-  _buildSubNavItem(context,
-      icon: Icons.timeline, title: 'Patent Status', index: 24),
-],
-
+                  // Patent Module
+                  _buildModuleWithToggle(
+                    icon: Icons.brightness_7,
+                    title: 'Patent',
+                    isExpanded: _isPatentExpanded,
+                    onToggle: () {
+                      setState(() {
+                        _isPatentExpanded = !_isPatentExpanded;
+                      });
+                    },
+                  ),
+                  if (_isPatentExpanded) ...[
+                    _buildSubNavItem(context,
+                        icon: Icons.add_circle_outline,
+                        title: 'File Patent',
+                        index: 22),
+                    _buildSubNavItem(context,
+                        icon: Icons.category,
+                        title: 'Patent Portfolio',
+                        index: 23),
+                    _buildSubNavItem(context,
+                        icon: Icons.timeline, title: 'Patent Status', index: 24),
+                  ],
 
                   // Inventory Module
                   _buildModuleWithToggle(
