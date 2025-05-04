@@ -20,7 +20,7 @@ class _ActorsPageState extends State<ActorsPage> {
         Navigator.push(context, MaterialPageRoute(builder: (_) => const ApplicantDashboard()));
         break;
       case 1:
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const PCCAdminDashboard()));
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const PatentDashboardPage()));
         break;
       case 2:
         Navigator.push(context, MaterialPageRoute(builder: (_) => const DirectorDashboard()));
