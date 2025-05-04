@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'form_page3.dart';
 import 'form_page5.dart';
+import '../../utils/sidebar.dart'; // Import your sidebar
+import '../../utils/bottom_bar.dart'; // Import your bottom bar
 
 class FormPage4 extends StatefulWidget {
   const FormPage4({super.key});
@@ -24,28 +26,22 @@ class _FormPage4State extends State<FormPage4> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const Sidebar(), // Sidebar added
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: CircleAvatar(
-            backgroundImage: AssetImage('assets/profile.jpg'),
-          ),
+        leading: Builder(
+          builder: (BuildContext context) {
+            return IconButton(
+              icon: Icon(Icons.menu, color: Colors.black),
+              onPressed: () {
+                Scaffold.of(context).openDrawer(); // Open the drawer when the menu icon is tapped
+              },
+            );
+          },
         ),
-        title: Text(
-          "Praneeth",
-          style: TextStyle(color: Colors.blue, fontSize: 24),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-              onPressed: () {},
-              child: Text("MENU"),
-            ),
-          ),
-        ],
+        
+        
       ),
       body: Padding(
         padding: const EdgeInsets.all(14.0),
@@ -147,6 +143,7 @@ class _FormPage4State extends State<FormPage4> {
           ),
         ),
       ),
+      bottomNavigationBar: const BottomBar(), // Bottom bar added
     );
   }
 

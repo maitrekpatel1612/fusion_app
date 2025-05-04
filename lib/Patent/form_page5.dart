@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'form_page4.dart';
 import 'saved_drafts.dart';
+import '../../utils/sidebar.dart'; // Import your sidebar
+import '../../utils/bottom_bar.dart'; // Import your bottom bar
 
 class FormPage5 extends StatefulWidget {
   const FormPage5({super.key});
@@ -41,28 +43,19 @@ class _FormPage5State extends State<FormPage5> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const Sidebar(), // Sidebar added
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: CircleAvatar(
-            backgroundImage: AssetImage('assets/profile.jpg'),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: Icon(Icons.menu, color: Colors.black),
+            onPressed: () {
+              Scaffold.of(context).openDrawer(); // Open the drawer when the menu icon is tapped
+            },
           ),
         ),
-        title: Text(
-          "Praneeth",
-          style: TextStyle(color: Colors.blue, fontSize: 24),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-              onPressed: () {},
-              child: Text("MENU"),
-            ),
-          ),
-        ],
+        
       ),
       body: Padding(
         padding: const EdgeInsets.all(14.0),
@@ -267,55 +260,7 @@ class _FormPage5State extends State<FormPage5> {
           ),
         ),
       ),
-      drawer: Drawer(
-        child: ListView(
-          children: [
-            UserAccountsDrawerHeader(
-              accountName: Text('Praneeth'),
-              accountEmail: Text('praneeth@example.com'),
-              currentAccountPicture: CircleAvatar(
-                backgroundImage: AssetImage('assets/profile.jpg'),
-              ),
-            ),
-            ListTile(
-              title: Text("Profile"),
-              onTap: () {},
-            ),
-            ListTile(
-              title: Text("Saved Drafts"),
-              onTap: navigateToSavedDrafts,
-            ),
-            ListTile(
-              title: Text("Settings"),
-              onTap: () {},
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: BottomAppBar(
-        color: Colors.blue,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            IconButton(
-              icon: Icon(Icons.home, color: Colors.white, size: 28),
-              onPressed: () {},
-            ),
-            IconButton(
-              icon: Icon(Icons.book, color: Colors.white, size: 28),
-              onPressed: () {},
-            ),
-            IconButton(
-              icon: Icon(Icons.search, color: Colors.white, size: 28),
-              onPressed: () {},
-            ),
-            IconButton(
-              icon: Icon(Icons.person, color: Colors.white, size: 28),
-              onPressed: () {},
-            ),
-          ],
-        ),
-      ),
+      bottomNavigationBar: const BottomBar(), // Bottom bar added
     );
   }
 }

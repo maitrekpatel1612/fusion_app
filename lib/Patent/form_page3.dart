@@ -30,7 +30,7 @@ class _FormPage3State extends State<FormPage3> {
           ),
         ),
         title: Text(
-          "Praneeth",
+          "",
           style: TextStyle(color: Colors.blue, fontSize: 24),
         ),
         actions: [],
