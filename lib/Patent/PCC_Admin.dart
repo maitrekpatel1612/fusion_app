@@ -1,29 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../utils/sidebar.dart'; // Import your sidebar
 import '../../utils/bottom_bar.dart'; // Import your bottom bar
-import 'package:csv/csv.dart';
-import 'dart:convert';
-import 'dart:html' as html;
 import 'pnewapplication.dart';
 import 'pmanageatt.dart';
 import 'pstatus.dart';
 import 'pdownloadform.dart';
 import 'package:fl_chart/fl_chart.dart';
-void downloadCSV(List<List<String>> data, String filename) {
-  try {
-    String csvData = const ListToCsvConverter().convert(data);
-    final bytes = utf8.encode(csvData);
-    final blob = html.Blob([bytes]);
-    final url = html.Url.createObjectUrlFromBlob(blob);
-    final anchor = html.AnchorElement(href: url)
-      ..setAttribute("download", filename)
-      ..click();
-    html.Url.revokeObjectUrl(url);
-  } catch (e) {
-    print("Error downloading CSV: $e");
-  }
-}
-
 class PatentDashboardPage extends StatefulWidget {
   const PatentDashboardPage({super.key});
 
@@ -63,7 +45,8 @@ class _PatentDashboardPageState extends State<PatentDashboardPage>
           builder: (context) => IconButton(
             icon: Icon(Icons.menu, color: Colors.black),
             onPressed: () {
-              Scaffold.of(context).openDrawer(); // Open the drawer when the menu icon is tapped
+              Scaffold.of(context)
+                  .openDrawer(); // Open the drawer when the menu icon is tapped
             },
           ),
         ),
@@ -77,7 +60,6 @@ class _PatentDashboardPageState extends State<PatentDashboardPage>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header with avatar, name, and menu button
-              
 
               SizedBox(height: 24),
 
@@ -198,28 +180,6 @@ class _PatentDashboardPageState extends State<PatentDashboardPage>
                         ],
                       ),
                       SizedBox(height: 20),
-                      Center(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            List<List<String>> csvData = [
-                              ["Status", "Count", "Percentage"],
-                              ["Submitted", "$submittedCount", "50%"],
-                              ["Approved", "$approvedCount", "35%"],
-                              ["Under Review", "$underReviewCount", "15%"]
-                            ];
-                            downloadCSV(csvData, "applications_data.csv");
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text("CSV downloaded successfully"),
-                                backgroundColor: Colors.green.shade400,
-                                duration: Duration(seconds: 2),
-                              ),
-                            );
-                          },
-                          icon: Icon(Icons.download),
-                          label: Text("Download CSV"),
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -278,8 +238,8 @@ class _PatentDashboardPageState extends State<PatentDashboardPage>
     );
   }
 
-  ElevatedButton buildNavButton(BuildContext context, String label,
-      Widget page, IconData icon) {
+  ElevatedButton buildNavButton(
+      BuildContext context, String label, Widget page, IconData icon) {
     return ElevatedButton.icon(
       onPressed: () {
         Navigator.push(
@@ -291,7 +251,8 @@ class _PatentDashboardPageState extends State<PatentDashboardPage>
       label: Text(label),
       style: ElevatedButton.styleFrom(
         padding: EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-        backgroundColor: const Color.fromARGB(255, 105, 179, 239), // Updated to backgroundColor
+        backgroundColor: const Color.fromARGB(
+            255, 105, 179, 239), // Updated to backgroundColor
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),

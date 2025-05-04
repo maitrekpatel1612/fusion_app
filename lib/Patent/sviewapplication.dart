@@ -1,18 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../utils/sidebar.dart'; // Import your sidebar
 import '../../utils/bottom_bar.dart'; // Import your bottom bar
-import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
+
+
 import 'pstatus.dart';
 
-Future<void> _launchURL() async {
-  const url = 'https://example.com/sample.pdf';
-  if (await canLaunch(url)) {
-    await launch(url);
-  } else {
-    throw 'Could not launch $url';
-  }
-}
+
 
 Widget buildDetailRow(String title, String value) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -267,9 +260,7 @@ class _ViewDetailsOfReviewApplicationsState
   Widget buildMobileButtons() => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          buildButton("Download", () {
-            _launchURL();
-          }),
+         
           buildButton("Forward", () {
             _controller.forward();
             setState(() => showForwardedCard = true);
@@ -281,18 +272,14 @@ class _ViewDetailsOfReviewApplicationsState
               MaterialPageRoute(builder: (context) => StatusOfApplicationsPage()),
             );
           }),
-          buildButton("Review", () {
-            _launchURL();
-          }),
+        
         ],
       );
 
   Widget buildDesktopButtons() => Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          buildButton("Download", () {
-            _launchURL();
-          }),
+          
           buildButton("Forward", () {
             _controller.forward();
             setState(() => showForwardedCard = true);
@@ -304,9 +291,7 @@ class _ViewDetailsOfReviewApplicationsState
               MaterialPageRoute(builder: (context) => StatusOfApplicationsPage()),
             );
           }),
-          buildButton("Review", () {
-            _launchURL();
-          }),
+        
         ],
       );
 }
