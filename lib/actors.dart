@@ -1,0 +1,75 @@
+import 'package:flutter/material.dart';
+
+class ActorsPage extends StatelessWidget {
+  const ActorsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final List<Map<String, String>> dashboardOptions = [
+      {'title': 'DASHBOARD', 'subtitle': 'Applicant'},
+      {'title': 'DASHBOARD', 'subtitle': 'PCC Admin'},
+      {'title': 'DASHBOARD', 'subtitle': 'Director'},
+    ];
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Patent Management'),
+        backgroundColor: Colors.blue[800],
+        leading: const Icon(Icons.menu),
+        actions: const [Padding(padding: EdgeInsets.only(right: 16), child: Icon(Icons.notifications))],
+      ),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16.0),
+        itemCount: dashboardOptions.length,
+        itemBuilder: (context, index) {
+          final option = dashboardOptions[index];
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(colors: [Colors.blue[700]!, Colors.blue[400]!]),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 4,
+                    offset: Offset(2, 2),
+                  ),
+                ],
+              ),
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                leading: const CircleAvatar(
+                  backgroundColor: Colors.white,
+                  child: Icon(Icons.dashboard, color: Colors.blue),
+                ),
+                title: Text(
+                  option['title']!,
+                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  option['subtitle']!,
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+                trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white),
+                onTap: () {
+                  // Handle tap if needed
+                },
+              ),
+            ),
+          );
+        },
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 0,
+        selectedItemColor: Colors.blue[800],
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: 'Courses'),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        ],
+      ),
+    );
+  }
+}

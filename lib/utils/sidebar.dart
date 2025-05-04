@@ -4,7 +4,8 @@ import '../screens/Examination/examination_dashboard.dart';
 import '../screens/Examination/submit_grades.dart';
 import '../screens/Examination/update_grades.dart';
 import '../screens/Examination/result.dart';
-import 'home.dart'; // Import home screen
+import 'home.dart';
+import '../actors.dart'; // Import home screen
 
 class Sidebar extends StatefulWidget {
   final Function(int)? onItemSelected;
@@ -477,13 +478,9 @@ class _SidebarState extends State<Sidebar> {
                       title: 'Validate Grades',
                       index: 6),
                   _buildSubNavItem(context,
-                      icon: Icons.update,
-                      title: 'Update Grades',
-                      index: 7),
+                      icon: Icons.update, title: 'Update Grades', index: 7),
                   _buildSubNavItem(context,
-                      icon: Icons.assessment,
-                      title: 'Result',
-                      index: 8),
+                      icon: Icons.assessment, title: 'Result', index: 8),
                   ListTile(
                     leading: const Icon(Icons.assessment),
                     title: const Text('View Results'),
@@ -577,7 +574,16 @@ class _SidebarState extends State<Sidebar> {
                       _isPatentExpanded = !_isPatentExpanded;
                     });
                   },
+                  onTap: () {
+                    // Navigate to ActorsPage when clicking on the main Patent option
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const ActorsPage()),
+                    );
+                  },
                 ),
+
                 if (_isPatentExpanded) ...[
                   _buildSubNavItem(context,
                       icon: Icons.add_circle_outline,
