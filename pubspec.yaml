@@ -36,7 +36,12 @@ dependencies:
   file_picker: ^8.1.2
   http: ^1.1.2
   fl_chart: ^0.65.0
-  shared_preferences: ^2.2.0
+  shared_preferences: ^2.5.3
+<<<<<<< HEAD
+=======
+  google_fonts: ^6.2.1  # Upgrade google_fonts to a compatible version
+  url_launcher: ^6.1.5
+>>>>>>> upstream/main
   intl: ^0.18.1  # Added for date formatting
 
 dev_dependencies:
@@ -100,6 +105,8 @@ flutter:
     - assets/profile.jpg
     - assets/logo.png
     - assets/image.png
+
+    - assets/Splash_video.mp4
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
